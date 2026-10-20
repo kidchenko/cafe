@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>cafe</id>
+    <version>0.0.1</version>
+    <packageSourceUrl>https://github.com/kidchenko/cafe/tree/main/packaging/choco</packageSourceUrl>
+    <owners>kidchenko</owners>
+    <title>Cafe</title>
+    <authors>kidchenko</authors>
+    <projectUrl>https://github.com/kidchenko/cafe</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/kidchenko/cafe/main/assets/icon-256.png</iconUrl>
+    <licenseUrl>https://github.com/kidchenko/cafe/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/kidchenko/cafe</projectSourceUrl>
+    <bugTrackerUrl>https://github.com/kidchenko/cafe/issues</bugTrackerUrl>
+    <tags>cafe awake caffeine keep-awake sleep power tray utility</tags>
+    <summary>Keep your PC awake from the tray</summary>
+    <description><![CDATA[
+A coffee cup in the notification area that keeps Windows from going to sleep,
+like PowerToys Awake without the rest of PowerToys.
+
+* Keep awake indefinitely, for a set time, or until a time of day.
+* Optionally keep the screen on too.
+* Left-click the cup to toggle; switch off and your normal power plan applies.
+* Never edits your power plan: it asks Windows not to sleep, and the request
+  ends when Cafe stops, even if it crashes.
+
+A single small executable with no runtime dependencies.
+]]></description>
+    <releaseNotes>https://github.com/kidchenko/cafe/releases</releaseNotes>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

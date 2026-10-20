@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+PackageIdentifier: kidchenko.Cafe
+PackageVersion: 0.0.1
+PackageLocale: en-US
+Publisher: kidchenko
+PublisherUrl: https://github.com/kidchenko
+PublisherSupportUrl: https://github.com/kidchenko/cafe/issues
+PackageName: Cafe
+PackageUrl: https://github.com/kidchenko/cafe
+License: MIT
+LicenseUrl: https://github.com/kidchenko/cafe/blob/main/LICENSE
+Copyright: Copyright (c) 2026 kidchenko
+ShortDescription: Keep your PC awake from the tray
+Description: |-
+  A coffee cup in the notification area that keeps Windows from going to sleep,
+  like PowerToys Awake without the rest of PowerToys.
+
+  Keep awake indefinitely, for a set time, or until a time of day, optionally
+  with the screen kept on too. Left-click the cup to toggle. Switch it off and
+  your normal power plan applies: Cafe never edits the plan, it only asks
+  Windows not to sleep, and that request ends when Cafe stops.
+Moniker: cafe
+Tags:
+  - awake
+  - caffeine
+  - keep-awake
+  - sleep
+  - power
+  - tray
+  - utilities
+ReleaseNotesUrl: https://github.com/kidchenko/cafe/releases
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

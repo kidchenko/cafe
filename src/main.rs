@@ -1,0 +1,111 @@
+// No console window: this is a tray app. No-op off Windows.
+#![cfg_attr(windows, windows_subsystem = "windows")]
+
+//! Cafe keeps the machine awake from the tray, like PowerToys Awake or
+//! Caffeine/Amphetamine, on both Windows and macOS.
+//!
+//! | module            | responsibility                                     |
+//! |-------------------|----------------------------------------------------|
+//! | `awake`           | asks the OS not to sleep (and stops asking)         |
+//! | `config`          | the persisted mode and preferences                  |
+//! | `icon`            | draws the cup                                       |
+//! | `app`             | the tray icon, its menu, and the timer              |
+//! | `single_instance` | one copy at a time; relaunching toggles             |
+//! | `autostart`       | run at login                                        |
+
+mod app;
+mod autostart;
+mod awake;
+mod config;
+mod icon;
+mod log;
+mod single_instance;
+mod theme;
+mod util;
+
+use app::{App, Flow, UserEvent};
+use log::{lerror, linfo};
+use tao::event::{Event, StartCause};
+use tao::event_loop::{ControlFlow, EventLoopBuilder};
+
+fn main() {
+    // Development aid: writes the icons as raw RGBA and exits. See icon::dump.
+    let args: Vec<String> = std::env::args().collect();
+    if let Some(i) = args.iter().position(|a| a == "--dump-icons") {
+        let dir = args
+            .get(i + 1)
+            .map(String::as_str)
+            .unwrap_or("target/icons");
+        std::process::exit(match icon::dump(dir) {
+            Ok(()) => 0,
+            Err(_) => 1,
+        });
+    }
+
+    log::init();
+    linfo!(
+        "--- Cafe {} starting (pid {}) ---",
+        env!("CARGO_PKG_VERSION"),
+        std::process::id()
+    );
+
+    // A second launch toggles the running instance and exits.
+    let Some(signal) = single_instance::acquire() else {
+        linfo!("another instance owns the tray; asked it to toggle, exiting");
+        return;
+    };
+
+    #[allow(unused_mut)]
+    let mut event_loop = EventLoopBuilder::<UserEvent>::with_user_event().build();
+    // Menu-bar agent, no Dock icon. tao resets the activation policy as it
+    // starts, overriding LSUIElement, so it has to be asked for here too.
+    #[cfg(target_os = "macos")]
+    {
+        use tao::platform::macos::{ActivationPolicy, EventLoopExtMacOS};
+        event_loop.set_activation_policy(ActivationPolicy::Accessory);
+    }
+    let proxy = event_loop.create_proxy();
+
+    let signal_proxy = proxy.clone();
+    signal.watch(move || {
+        let _ = signal_proxy.send_event(UserEvent::Toggle);
+    });
+
+    // The tray is built once the loop is running: on macOS the status item
+    // cannot be created before the application has finished launching.
+    let mut app: Option<App> = None;
+
+    event_loop.run(move |event, _target, control_flow| {
+        match event {
+            Event::NewEvents(StartCause::Init) => match App::new(proxy.clone()) {
+                Ok(a) => app = Some(a),
+                Err(e) => {
+                    lerror!("{e}");
+                    *control_flow = ControlFlow::Exit;
+                    return;
+                }
+            },
+            Event::UserEvent(e) => {
+                if let Some(a) = app.as_mut() {
+                    if a.handle(e) == Flow::Exit {
+                        // Dropping the app drops the keeper, which withdraws
+                        // the request before the process goes.
+                        app = None;
+                        *control_flow = ControlFlow::Exit;
+                        return;
+                    }
+                }
+            }
+            Event::NewEvents(StartCause::ResumeTimeReached { .. }) => {
+                if let Some(a) = app.as_mut() {
+                    a.tick();
+                }
+            }
+            _ => {}
+        }
+
+        if let Some(a) = app.as_ref() {
+            *control_flow = ControlFlow::WaitUntil(a.next_wake());
+        }
+    });
+}
