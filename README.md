@@ -32,13 +32,14 @@ item.
 
 Running `cafe` again while it's already in the tray toggles the running copy
 instead of starting a second one. Pin it, bind it to a hotkey, or run it from a
-terminal.
+terminal. On macOS, opening Cafe.app again from Finder or Spotlight toggles it
+too.
 
 ## The menu
 
 | | |
 |---|---|
-| **Off (use power plan)** | Drops the request. The OS goes back to your own settings. |
+| **Off (use power plan)** | Drops the request. The OS goes back to your own settings. On macOS it reads **Off (use Energy settings)**. |
 | **Keep awake indefinitely** | Until you switch it off. |
 | **Keep awake for ▸** | 15 min, 30 min, 1 h, 2 h, 4 h or 8 h, then back to off. The time left is at the top of the menu and in the tooltip. |
 | **Keep awake until ▸** | One of the next eight whole hours (17:00, 18:00 and so on). |
@@ -47,7 +48,7 @@ terminal.
 | **Stop on battery below ▸** | Never, 10%, 20%, 30% or 50%. Default 20%. [More below.](#battery) |
 | **Notifications** | When a timer runs out or the battery floor stops Cafe. |
 | **Coffee facts** | A daily "did you know?" line in the menu. [More below.](#coffee-facts) |
-| **Run at login** | Per-user, no admin. |
+| **Run at login** | Per-user, no admin. On macOS, move Cafe.app to Applications first. |
 
 The mode is saved. A timer that hasn't run out yet picks up where it left off
 after a restart; one that ran out while Cafe was closed comes back off.

@@ -43,6 +43,13 @@ const ID_QUIT: &str = "quit";
 /// Shared by every read-only row; nothing dispatches on it.
 const ID_INERT: &str = "inert";
 
+/// What the OS's own sleep settings are called. "Power plan" means nothing to
+/// a Mac user, who knows them as Energy (or Battery) settings.
+#[cfg(windows)]
+const OS_SETTINGS: &str = "power plan";
+#[cfg(target_os = "macos")]
+const OS_SETTINGS: &str = "Energy settings";
+
 /// How often the loop wakes when nothing is due: often enough to keep the
 /// countdown honest to the minute and to catch the battery crossing its floor,
 /// rare enough to be invisible in Task Manager.
@@ -242,7 +249,7 @@ impl App {
                 if self.cfg.notify {
                     notify::show(
                         "Keep-awake ended",
-                        "Your timer ran out. Your normal power plan applies again.",
+                        &format!("Your timer ran out. Back to your normal {OS_SETTINGS}."),
                         None,
                     );
                 }
@@ -470,7 +477,7 @@ impl App {
             ""
         };
         match (self.cfg.mode, &self.trigger) {
-            (Mode::Off, None) => "Off \u{2014} normal power plan".into(),
+            (Mode::Off, None) => format!("Off \u{2014} normal {OS_SETTINGS}"),
             (Mode::Off, Some(app)) => format!("Awake{screen} while {app} runs"),
             (Mode::Indefinite, _) => format!("Awake{screen}"),
             (Mode::Until { at }, _) => format!(
@@ -506,7 +513,7 @@ impl App {
         let mode = self.cfg.mode;
         let _ = menu.append(&CheckMenuItem::with_id(
             ID_OFF,
-            "Off (use power plan)",
+            format!("Off (use {OS_SETTINGS})"),
             true,
             mode == Mode::Off,
             None,

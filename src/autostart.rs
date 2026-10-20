@@ -133,6 +133,15 @@ mod imp {
             .map_err(|e| format!("could not resolve the executable path: {e}"))?;
         let exe = exe.to_string_lossy();
 
+        // Run straight from the DMG, or from a quarantined download, the path is
+        // a mounted volume or a randomised App Translocation copy that is gone
+        // by the next login. Pointing a LaunchAgent there would fail silently.
+        if exe.starts_with("/Volumes/") || exe.contains("/AppTranslocation/") {
+            return Err(format!(
+                "not enabling run at login from {exe}: move Cafe.app to Applications first"
+            ));
+        }
+
         // Deliberately not `launchctl load`ed here: RunAtLoad would immediately
         // spawn a second copy on top of the one writing this file. launchd picks
         // the agent up at the next login, which is exactly when it is wanted.
@@ -162,6 +171,8 @@ mod imp {
     <string>Interactive</string>
     <key>LimitLoadToSessionType</key>
     <string>Aqua</string>
+    <key>AssociatedBundleIdentifiers</key>
+    <string>{LABEL}</string>
 </dict>
 </plist>
 "#,

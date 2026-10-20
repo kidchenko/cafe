@@ -21,7 +21,8 @@ First release.
 - Modes: off (normal power plan), indefinitely, for a set duration, or until a
   time of day.
 - "Keep screen on" toggle.
-- On Windows, left-click toggles. Launching the app a second time also toggles.
+- On Windows, left-click toggles. Launching the app a second time also toggles,
+  including reopening Cafe.app from Finder or Spotlight on macOS.
 - Run at login.
 - Remembers its mode across restarts, including timed sessions that still have
   time left.

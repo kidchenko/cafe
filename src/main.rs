@@ -103,6 +103,16 @@ fn main() {
                     }
                 }
             }
+            // macOS: opening Cafe.app again (Finder, Spotlight, `open`) does not
+            // start a second process, so the socket never hears about it.
+            // LaunchServices sends the running one a reopen instead; treat it
+            // like any other relaunch.
+            Event::Reopen { .. } => {
+                if let Some(a) = app.as_mut() {
+                    linfo!("reopened by LaunchServices");
+                    let _ = a.handle(UserEvent::Toggle);
+                }
+            }
             Event::NewEvents(StartCause::ResumeTimeReached { .. }) => {
                 if let Some(a) = app.as_mut() {
                     a.tick();
