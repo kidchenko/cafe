@@ -6,7 +6,8 @@
 Writes, next to this script:
   icon.ico       every size up to 256, PNG-compressed entries (Vista+)
   icon-256.png   for the Chocolatey/winget listings and the README
-  icon-1024.png  the master build.sh turns into the macOS .icns
+  icon-1024.png  the master build.sh turns into the macOS .icns, drawn on
+                 Apple's icon grid (an 824px tile with room for its shadow)
 
 and a PNG of every tray face into the dump directory, for looking at.
 
@@ -58,8 +59,8 @@ def main(dump: pathlib.Path) -> None:
         return data
 
     (HERE / "icon.ico").write_bytes(ico([(e, png(load("app", e), e)) for e in ICO_SIZES]))
-    for edge in (256, 1024):
-        (HERE / f"icon-{edge}.png").write_bytes(png(load("app", edge), edge))
+    (HERE / "icon-256.png").write_bytes(png(load("app", 256), 256))
+    (HERE / "icon-1024.png").write_bytes(png(load("mac", 1024), 1024))
 
     for path in sorted(dump.glob("tray-*.rgba")):
         edge = int(path.stem.rsplit("-", 1)[1])
