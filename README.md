@@ -48,7 +48,7 @@ too.
 | **Stop on battery below ▸** | Never, 10%, 20%, 30% or 50%. Default 20%. [More below.](#battery) |
 | **Notifications** | When a timer runs out or the battery floor stops Cafe. |
 | **Coffee facts** | A daily "did you know?" line in the menu. [More below.](#coffee-facts) |
-| **Run at login** | Per-user, no admin. On macOS, move Cafe.app to Applications first. |
+| **Run at login** | Per-user, no admin. On macOS it's a regular login item in System Settings > General > Login Items, where you can also switch it off. Move Cafe.app to Applications first. |
 
 The mode is saved. A timer that hasn't run out yet picks up where it left off
 after a restart; one that ran out while Cafe was closed comes back off.

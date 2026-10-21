@@ -23,7 +23,7 @@ First release.
 - "Keep screen on" toggle.
 - On Windows, left-click toggles. Launching the app a second time also toggles,
   including reopening Cafe.app from Finder or Spotlight on macOS.
-- Run at login.
+- Run at login. On macOS 13+ it is a regular login item in System Settings.
 - Remembers its mode across restarts, including timed sessions that still have
   time left.
 - Windows installer (Inno Setup), Chocolatey and winget manifests, a universal
