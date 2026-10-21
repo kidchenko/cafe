@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+- Keep awake while an app runs: pick from running apps, or list process names
+  in the config.
+- Stop on battery below a floor (default 20%), with the current charge shown in
+  the menu.
+- Notifications when a timer ends or the battery floor stops Cafe, with a
+  toggle in the menu.
+- Hand edits to config.json are picked up without a restart.
+- Landing page in `docs/`.
+
 ## [0.0.1] - 2026-10-20
 
 First release.

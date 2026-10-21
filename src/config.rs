@@ -30,6 +30,15 @@ pub struct Config {
     pub keep_screen_on: bool,
     /// The "Keep awake for" choices, in minutes.
     pub durations: Vec<u32>,
+    /// Stop keeping awake when running on battery below this percentage.
+    /// 0 means never. Has no effect on a machine without a battery.
+    pub battery_floor: u8,
+    /// Keep awake while any of these processes is running, whatever the mode.
+    /// Matched case-insensitively against the executable name, with or without
+    /// `.exe`.
+    pub apps: Vec<String>,
+    /// Notify when a timed session ends or the battery floor stops Cafe.
+    pub notify: bool,
 }
 
 impl Default for Config {
@@ -38,6 +47,11 @@ impl Default for Config {
             mode: Mode::Off,
             keep_screen_on: true,
             durations: vec![15, 30, 60, 120, 240, 480],
+            // On by default: a laptop kept awake on battery overnight is the
+            // one failure this app can cause rather than prevent.
+            battery_floor: 20,
+            apps: Vec::new(),
+            notify: true,
         }
     }
 }
@@ -55,6 +69,17 @@ impl Config {
 
     pub fn path() -> Option<PathBuf> {
         Self::dir().map(|d| d.join("config.json"))
+    }
+
+    /// Last-modified time of the file, to notice a hand edit cheaply.
+    pub fn modified() -> Option<std::time::SystemTime> {
+        std::fs::metadata(Self::path()?).ok()?.modified().ok()
+    }
+
+    /// Read and parse without falling back to defaults: `None` for missing
+    /// or unparsable, so an editor caught mid-save changes nothing.
+    pub fn reload() -> Option<Self> {
+        Self::parse(&std::fs::read_to_string(Self::path()?).ok()?).ok()
     }
 
     fn parse(text: &str) -> Result<Self, serde_json::Error> {
@@ -111,6 +136,18 @@ impl Config {
         if self.durations.is_empty() {
             self.durations = Self::default().durations;
         }
+        self.battery_floor = self.battery_floor.min(95);
+        let mut seen = Vec::new();
+        self.apps.retain(|a| {
+            let key = crate::procs::normalise(a);
+            !key.is_empty() && !seen.contains(&key) && {
+                seen.push(key);
+                true
+            }
+        });
+        for a in &mut self.apps {
+            *a = a.trim().to_string();
+        }
         self
     }
 }
@@ -141,6 +178,16 @@ mod tests {
         assert_eq!(c.mode, Mode::Off);
         assert!(!c.keep_screen_on);
         assert!(!c.durations.is_empty());
+    }
+
+    #[test]
+    fn cleans_app_list_and_battery_floor() {
+        let c = Config::parse(
+            r#"{"apps": ["OBS64.exe", " obs64 ", "", "ffmpeg"], "batteryFloor": 200}"#,
+        )
+        .unwrap();
+        assert_eq!(c.apps, vec!["OBS64.exe", "ffmpeg"]);
+        assert_eq!(c.battery_floor, 95);
     }
 
     #[test]

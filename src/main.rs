@@ -9,6 +9,9 @@
 //! | `awake`           | asks the OS not to sleep (and stops asking)         |
 //! | `config`          | the persisted mode and preferences                  |
 //! | `icon`            | draws the cup                                       |
+//! | `power`           | battery level, for the stop-on-battery floor        |
+//! | `procs`           | running apps, for keep-awake-while-app-runs         |
+//! | `notify`          | notifications when Cafe stops on its own            |
 //! | `app`             | the tray icon, its menu, and the timer              |
 //! | `single_instance` | one copy at a time; relaunching toggles             |
 //! | `autostart`       | run at login                                        |
@@ -19,6 +22,9 @@ mod awake;
 mod config;
 mod icon;
 mod log;
+mod notify;
+mod power;
+mod procs;
 mod single_instance;
 mod theme;
 mod util;

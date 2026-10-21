@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cafe — keep your Mac or PC awake</title>
+<meta name="description" content="A coffee cup in the tray that keeps Windows and macOS from sleeping: indefinitely, for a while, until a time, or while an app runs. Free and open source.">
+<link rel="icon" href="img/icon-256.png" type="image/png">
+
+<meta property="og:title" content="Cafe — keep your Mac or PC awake">
+<meta property="og:description" content="A coffee cup in the tray that keeps your computer from sleeping. For Windows and macOS.">
+<meta property="og:image" content="img/icon-256.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+
+<style>
+  /* Espresso and cream, from the app icon. The amber is the filled cup's own
+     colour in the tray, so the page and the product share one accent. */
+  :root {
+    --bg:      #17110c;
+    --raised:  #221912;
+    --line:    #3a2b1f;
+    --text:    #f6ecdd;
+    --dim:     #c9b59e;
+    --faint:   #8f7a64;
+    --accent:  #e3943d;
+    --on-acc:  #2a1605;
+    --menu-bg: #2b2b2b;
+    --menu-tx: #f2f2f2;
+    --menu-dim:#9a9a9a;
+    --menu-hl: #3d3d3d;
+    --radius:  14px;
+    --measure: 46rem;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg:     #fbf5ec;
+      --raised: #f3e8d8;
+      --line:   #e2d2bc;
+      --text:   #2a1a0e;
+      --dim:    #6b5440;
+      --faint:  #977f68;
+      --accent: #b8661a;
+      --on-acc: #fff8ef;
+      --menu-bg:#f9f9f9;
+      --menu-tx:#1b1b1b;
+      --menu-dim:#7a7a7a;
+      --menu-hl:#e8e8e8;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 17px/1.65 "Segoe UI Variable Text", "Segoe UI", system-ui,
+          -apple-system, "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--measure); margin: 0 auto; padding: 0 20px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font-family: "Cascadia Code", Consolas, ui-monospace, monospace;
+    font-size: .88em;
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: .12em .42em;
+    white-space: nowrap;
+  }
+
+  /* ------------------------------------------------------------------ hero */
+  header.wrap { text-align: center; padding-top: 84px; padding-bottom: 8px; }
+  header img.mark { width: 128px; height: 128px; filter: drop-shadow(0 18px 36px rgba(0,0,0,.35)); }
+  h1 {
+    font-size: clamp(2.7rem, 9vw, 4.2rem);
+    font-weight: 700;
+    letter-spacing: -.03em;
+    line-height: 1.04;
+    margin: 26px 0 0;
+  }
+  .tagline { font-size: clamp(1.12rem, 3.6vw, 1.45rem); color: var(--dim); margin: 14px auto 0; max-width: 30ch; }
+
+  .cta { margin: 36px 0 0; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .download {
+    display: inline-block;
+    font-weight: 650;
+    font-size: 1.04rem;
+    padding: 14px 28px;
+    border-radius: 11px;
+    background: var(--accent);
+    color: var(--on-acc);
+    transition: transform .12s ease, filter .12s ease;
+  }
+  .download:hover { text-decoration: none; transform: translateY(-1px); filter: brightness(1.07); }
+  .download.ghost, .os-mac .dl-win {
+    background: transparent; color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--line);
+  }
+  .os-mac .dl-mac { background: var(--accent); color: var(--on-acc); box-shadow: none; order: -1; }
+  .alt { margin: 18px 0 0; color: var(--faint); font-size: .94rem; }
+  .for-mac { display: none; }
+  .os-mac .for-win { display: none; }
+  .os-mac .for-mac { display: block; }
+
+  /* --------------------------------------------------------- the demo menu */
+  .demo { margin: 64px auto 0; display: flex; flex-direction: column; align-items: center; }
+  .menu {
+    width: min(100%, 330px);
+    background: var(--menu-bg);
+    color: var(--menu-tx);
+    border-radius: 10px;
+    padding: 6px;
+    font: 14px/1.2 "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+    box-shadow: 0 24px 60px rgba(0,0,0,.42), 0 0 0 1px rgba(127,127,127,.18);
+    text-align: left;
+    user-select: none;
+  }
+  .menu .row {
+    display: grid; grid-template-columns: 22px 1fr auto; align-items: center;
+    padding: 7px 10px; border-radius: 6px; cursor: default;
+  }
+  .menu button.row { all: unset; display: grid; grid-template-columns: 22px 1fr auto; align-items: center;
+    padding: 7px 10px; border-radius: 6px; cursor: pointer; width: 100%; box-sizing: border-box; }
+  .menu button.row:hover, .menu button.row:focus-visible { background: var(--menu-hl); }
+  .menu .head { color: var(--menu-dim); }
+  .menu .sep { height: 1px; background: rgba(127,127,127,.25); margin: 5px 8px; }
+  .menu .chk { visibility: hidden; font-size: 13px; }
+  .menu .on .chk { visibility: visible; }
+  .menu .arrow { color: var(--menu-dim); font-size: 12px; }
+
+  .taskbar {
+    margin-top: 16px;
+    display: flex; align-items: center; gap: 10px;
+    background: #1f1f1f; border-radius: 10px; padding: 8px 14px;
+    color: #e6e6e6; font-size: 13px;
+    box-shadow: 0 0 0 1px rgba(127,127,127,.2);
+  }
+  .taskbar img { width: 24px; height: 24px; display: block; }
+  .hint { color: var(--faint); font-size: .86rem; margin-top: 12px; text-align: center; }
+
+  /* ------------------------------------------------------------- sections */
+  section { padding: 76px 0 0; }
+  h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); letter-spacing: -.02em; line-height: 1.15; margin: 0 0 10px; }
+  .lede { color: var(--dim); margin: 0 0 28px; max-width: 40ch; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr)); gap: 14px; }
+  .card { background: var(--raised); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 20px 18px; }
+  .card h3 { margin: 0 0 6px; font-size: 1.04rem; letter-spacing: -.01em; }
+  .card p { margin: 0; color: var(--dim); font-size: .95rem; line-height: 1.55; }
+  .card .ico { font-size: 1.35rem; line-height: 1; margin-bottom: 12px; display: block; }
+
+  .faces { display: flex; gap: 14px; flex-wrap: wrap; }
+  .face { flex: 1 1 12rem; display: flex; gap: 14px; align-items: center;
+    background: var(--raised); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+  .face .chip { flex: none; width: 52px; height: 52px; border-radius: 10px; background: #1f1f1f;
+    display: grid; place-items: center; }
+  .face .chip img { width: 34px; height: 34px; }
+  .face b { display: block; font-size: .98rem; }
+  .face span { color: var(--dim); font-size: .9rem; line-height: 1.4; }
+
+  table { width: 100%; border-collapse: collapse; font-size: .96rem; }
+  td { padding: 12px 0; border-top: 1px solid var(--line); vertical-align: top; }
+  td:first-child { color: var(--dim); width: 34%; padding-right: 16px; }
+  tr:last-child td { border-bottom: 1px solid var(--line); }
+
+  .how { background: var(--raised); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 22px 6px; }
+  .how p { margin: 0 0 16px; color: var(--dim); }
+  .how p b { color: var(--text); font-weight: 600; }
+
+  footer { padding: 84px 0 56px; color: var(--faint); font-size: .9rem; text-align: center; }
+  footer a { color: var(--dim); }
+
+  @media (max-width: 520px) {
+    header.wrap { padding-top: 56px; }
+    td:first-child { width: 40%; }
+    code { white-space: normal; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <img class="mark" src="img/icon-256.png" alt="" width="128" height="128">
+  <h1>Cafe</h1>
+  <p class="tagline">Keeps your Mac or PC awake, right from the tray.</p>
+
+  <div class="cta">
+    <a class="download dl-win" href="https://github.com/kidchenko/cafe/releases/latest/download/Cafe-Setup.exe">Download for Windows</a>
+    <a class="download ghost dl-mac" href="https://github.com/kidchenko/cafe/releases/latest/download/Cafe.dmg">Download for macOS</a>
+  </div>
+  <p class="alt for-win">or <code>winget install kidchenko.Cafe</code> &nbsp;·&nbsp; <code>choco install cafe</code></p>
+  <p class="alt for-mac">or <code>brew install --cask kidchenko/tap/cafe</code></p>
+</header>
+
+<div class="wrap demo" aria-label="Interactive preview of Cafe's tray menu">
+  <div class="menu" role="menu" id="menu">
+    <div class="row head"><span></span><span id="status">Off — normal power plan</span><span></span></div>
+    <div class="sep"></div>
+    <button class="row on" data-mode="off" role="menuitemradio"><span class="chk">✓</span><span>Off (use power plan)</span><span></span></button>
+    <button class="row" data-mode="on" role="menuitemradio"><span class="chk">✓</span><span>Keep awake indefinitely</span><span></span></button>
+    <button class="row" data-mode="for" role="menuitem"><span class="chk">✓</span><span>Keep awake for</span><span class="arrow">›</span></button>
+    <button class="row" data-mode="until" role="menuitem"><span class="chk">✓</span><span>Keep awake until</span><span class="arrow">›</span></button>
+    <button class="row" data-mode="app" role="menuitem"><span class="chk">✓</span><span>Keep awake while app runs</span><span class="arrow">›</span></button>
+    <div class="sep"></div>
+    <button class="row on" data-toggle="screen" role="menuitemcheckbox"><span class="chk">✓</span><span>Keep screen on</span><span></span></button>
+    <div class="row"><span></span><span>Stop on battery below</span><span class="arrow">20% ›</span></div>
+    <div class="row on"><span class="chk">✓</span><span>Notifications</span><span></span></div>
+    <div class="row on"><span class="chk">✓</span><span>Run at login</span><span></span></div>
+    <div class="sep"></div>
+    <div class="row"><span></span><span>Quit Cafe</span><span></span></div>
+  </div>
+  <div class="taskbar" aria-hidden="true">
+    <img id="cup" src="img/cup-off.png" alt=""><span id="clock">17:42</span>
+  </div>
+  <p class="hint">Try it: click the menu.</p>
+</div>
+
+<main class="wrap">
+  <section>
+    <h2>Stay awake on your terms</h2>
+    <p class="lede">For downloads, renders, presentations, long builds, or just reading without the screen going dark.</p>
+    <div class="grid">
+      <div class="card"><span class="ico">☕</span><h3>Indefinitely</h3><p>One click on the cup and the machine stays up until you click again.</p></div>
+      <div class="card"><span class="ico">⏱</span><h3>For a while</h3><p>15 minutes to 8 hours. The time left is in the menu and the tooltip.</p></div>
+      <div class="card"><span class="ico">🕔</span><h3>Until a time</h3><p>Pick 17:00 and walk away. At 17:00 the normal power plan takes over.</p></div>
+      <div class="card"><span class="ico">▶</span><h3>While an app runs</h3><p>Keeps awake while OBS, a game or a build is running, and stops when it closes.</p></div>
+      <div class="card"><span class="ico">🔋</span><h3>Battery-aware</h3><p>On battery below a floor you choose, Cafe steps aside so the laptop isn't drained overnight.</p></div>
+      <div class="card"><span class="ico">🔔</span><h3>Tells you when it stops</h3><p>A notification when a timer runs out or the battery floor kicks in.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The cup tells you</h2>
+    <p class="lede">The cup in the tray shows the state at a glance.</p>
+    <div class="faces">
+      <div class="face"><div class="chip"><img src="img/cup-off.png" alt=""></div><div><b>Off</b><span>Your normal power plan.</span></div></div>
+      <div class="face"><div class="chip"><img src="img/cup-awake.png" alt=""></div><div><b>Awake</b><span>No sleep. The screen may still turn off.</span></div></div>
+      <div class="face"><div class="chip"><img src="img/cup-screen.png" alt=""></div><div><b>Awake, screen on</b><span>Neither sleeps.</span></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Never touches your power plan</h2>
+    <div class="how">
+      <p>Cafe doesn't change any power settings. It asks the OS for a temporary request instead: <b>SetThreadExecutionState</b> on Windows, an <b>IOKit power assertion</b> on macOS.</p>
+      <p>Switch it off, quit it, or let it crash, and the request ends with it. The machine goes straight back to the plan you already had, so there's nothing to restore.</p>
+      <p>You can check it yourself with <code>powercfg /requests</code> or <code>pmset -g assertions</code>, where it shows up under its own name.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Install</h2>
+    <table>
+      <tr><td>Windows installer</td><td><a href="https://github.com/kidchenko/cafe/releases/latest/download/Cafe-Setup.exe">Cafe-Setup.exe</a></td></tr>
+      <tr><td>winget</td><td><code>winget install kidchenko.Cafe</code></td></tr>
+      <tr><td>Chocolatey</td><td><code>choco install cafe</code></td></tr>
+      <tr><td>macOS</td><td><a href="https://github.com/kidchenko/cafe/releases/latest/download/Cafe.dmg">Cafe.dmg</a> (Apple silicon and Intel)</td></tr>
+      <tr><td>Homebrew</td><td><code>brew install --cask kidchenko/tap/cafe</code></td></tr>
+    </table>
+    <p class="alt" style="text-align:left">Windows 10 or later, macOS 11 or later. Under 1 MB, no runtime to install.</p>
+  </section>
+</main>
+
+<footer class="wrap">
+  Made by <a href="https://github.com/kidchenko">kidchenko</a> · MIT licensed ·
+  <a href="https://github.com/kidchenko/cafe">Source</a> ·
+  <a href="https://github.com/kidchenko/cafe/releases">Releases</a>
+</footer>
+
+<script>
+  // Lead with the visitor's platform. Without script both buttons still work.
+  try {
+    var p = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || "";
+    if (/mac/i.test(p)) document.body.classList.add("os-mac");
+  } catch (e) {}
+
+  // The demo menu: the same states as the app, painted the same way.
+  (function () {
+    var menu = document.getElementById("menu");
+    var status = document.getElementById("status");
+    var cup = document.getElementById("cup");
+    var clock = document.getElementById("clock");
+    var state = { mode: "off", screen: true };
+    var now = new Date();
+    function hhmm(d) { return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
+    function left(ms) { var m = Math.ceil(ms / 60000); return Math.floor(m / 60) + "h " + String(m % 60).padStart(2, "0") + "m"; }
+    var inHour = new Date(now.getTime() + 3600000);
+    // "Until" picks the second whole hour from now, like the menu's 2nd entry.
+    var atHour = new Date(now); atHour.setHours(now.getHours() + 2, 0, 0, 0);
+    var labels = {
+      off: function () { return "Off — normal power plan"; },
+      on: function (s) { return "Awake" + s; },
+      for: function (s) { return "Awake" + s + " until " + hhmm(inHour) + " — 1h 00m left"; },
+      until: function (s) { return "Awake" + s + " until " + hhmm(atHour) + " — " + left(atHour - now) + " left"; },
+      app: function (s) { return "Awake" + s + " while OBS runs"; }
+    };
+    function paint() {
+      var s = state.screen ? ", screen on" : "";
+      status.textContent = labels[state.mode](s);
+      menu.querySelectorAll("[data-mode]").forEach(function (b) {
+        var on = b.dataset.mode === state.mode && (state.mode === "off" || state.mode === "on");
+        b.classList.toggle("on", on);
+      });
+      menu.querySelector('[data-toggle="screen"]').classList.toggle("on", state.screen);
+      cup.src = state.mode === "off" ? "img/cup-off.png" : state.screen ? "img/cup-screen.png" : "img/cup-awake.png";
+    }
+    menu.addEventListener("click", function (e) {
+      var b = e.target.closest("button");
+      if (!b) return;
+      if (b.dataset.mode) state.mode = b.dataset.mode;
+      if (b.dataset.toggle === "screen") state.screen = !state.screen;
+      paint();
+    });
+    clock.textContent = hhmm(now);
+    paint();
+  })();
+</script>
+</body>
+</html>

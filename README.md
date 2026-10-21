@@ -19,7 +19,16 @@ Amphetamine, and the same small binary runs on Windows and macOS.
   The time left shows at the top of the menu and in the tooltip.
 - **Keep awake until ▸** one of the next eight whole hours (17:00, 18:00 and so on),
   then back to Off.
+- **Keep awake while app runs ▸**: stays awake while any app on your list is
+  running, whatever the mode. Add apps from **Add running app ▸**, which lists
+  apps with a window. Use **Edit app list…** for anything without a window, like
+  `ffmpeg` or `cargo`. Click a listed app to remove it.
 - **Keep screen on**: also keeps the display awake.
+- **Stop on battery below ▸** Never / 10% / 20% / 30% / 50% (default 20%). On
+  battery below the floor, Cafe ends any session and ignores watched apps until
+  you plug in. The current charge shows in the menu.
+- **Notifications**: notifies you when a timer runs out or the battery floor
+  stops Cafe.
 - **Run at login**
 - **Quit Cafe**
 
@@ -66,8 +75,19 @@ closing a MacBook lid on battery.
 | log | `%APPDATA%\Cafe\cafe.log` | `~/Library/Application Support/Cafe/cafe.log` |
 
 The current mode is saved. A timed session that hasn't run out yet resumes
-after a restart. You can change the list of durations with `durations`
-(in minutes) in the config.
+after a restart. Settings you can edit in the config (Cafe picks up changes
+within a few seconds, no restart needed):
+
+| key | meaning |
+|-----|---------|
+| `apps` | process names to keep awake for, e.g. `["obs64", "ffmpeg"]`; matching ignores case and `.exe` |
+| `batteryFloor` | percent, `0` = never stop |
+| `durations` | the "Keep awake for" choices, in minutes |
+| `notify` | `true` / `false` |
+
+On Windows, notifications show up as "Cafe" when installed with the installer.
+A portable copy shows them under PowerShell's name instead, because Windows
+only lets registered apps post notifications under their own name.
 
 ## Build
 
@@ -81,6 +101,10 @@ after a restart. You can change the list of durations with `durations`
 ./build.sh --run                 # macOS: dist/Cafe.app, launched into the menu bar
 ./build.sh --universal --dmg     # what a release ships
 ```
+
+The landing page is `docs/index.html`, a single static file. To serve it, turn
+on GitHub Pages with "Deploy from a branch", `main`, `/docs`. Pages on a private
+repo needs a paid plan.
 
 The icons are drawn in code (`src/icon.rs`). `cafe --dump-icons <dir>` writes
 them as raw RGBA, and `assets/make_icons.py` turns that into `icon.ico` and the

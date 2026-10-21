@@ -58,7 +58,10 @@ Name: "autostart"; Description: "Start {#AppName} when I sign in"; \
 Source: "..\..\target\release\{#AppExe}"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExe}"
+; The AppUserModelID is what lets notifications show as "Cafe" with its icon:
+; Windows drops toasts for an id with no shortcut behind it. Must match
+; APP_ID in src/notify.rs.
+Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExe}"; AppUserModelID: "kidchenko.Cafe"
 Name: "{group}\Uninstall {#AppName}"; Filename: "{uninstallexe}"
 
 [Registry]
