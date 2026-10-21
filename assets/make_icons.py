@@ -9,6 +9,8 @@ Writes, next to this script:
   icon-1024.png  the master build.sh turns into the macOS .icns, drawn on
                  Apple's icon grid (an 824px tile with room for its shadow)
 
+and the landing page's copies in docs/img: icon-256.png and cup-*.png.
+
 and a PNG of every tray face into the dump directory, for looking at.
 
 Standard library only: the app draws its own pixels, so the only job here is
@@ -62,11 +64,18 @@ def main(dump: pathlib.Path) -> None:
     (HERE / "icon-256.png").write_bytes(png(load("app", 256), 256))
     (HERE / "icon-1024.png").write_bytes(png(load("mac", 1024), 1024))
 
+    docs = HERE.parent / "docs" / "img"
+    docs.mkdir(parents=True, exist_ok=True)
+    (docs / "icon-256.png").write_bytes(png(load("app", 256), 256))
+    for face in ("off", "awake", "screen"):
+        (docs / f"cup-{face}.png").write_bytes(png(load(f"cup-{face}", 128), 128))
+
     for path in sorted(dump.glob("tray-*.rgba")):
         edge = int(path.stem.rsplit("-", 1)[1])
         path.with_suffix(".png").write_bytes(png(path.read_bytes(), edge))
 
     print(f"wrote icon.ico, icon-256.png, icon-1024.png to {HERE}")
+    print(f"wrote icon-256.png, cup-*.png to {docs}")
     print(f"tray previews in {dump}")
 
 

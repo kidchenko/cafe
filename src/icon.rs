@@ -35,14 +35,34 @@ type Rgba = [f32; 4];
 /// The tray glyph's design grid: 16 units across, centred on the origin.
 const TRAY_GRID: f32 = 16.0;
 
+/// How the tray glyph is coloured.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum Ink {
+    /// macOS: black + alpha, tinted by AppKit.
+    Template,
+    /// Windows, against a dark taskbar.
+    Dark,
+    /// Windows, against a light taskbar.
+    Light,
+}
+
 /// RGBA8, `edge` x `edge`, straight alpha.
 pub fn render(face: Face, dark_taskbar: bool, edge: u32) -> Vec<u8> {
-    let (fg, fill): (Rgb, Rgb) = if cfg!(target_os = "macos") {
-        ([0.0; 3], [0.0; 3])
+    let ink = if cfg!(target_os = "macos") {
+        Ink::Template
     } else if dark_taskbar {
-        ([0.95, 0.95, 0.95], [0.89, 0.58, 0.24])
+        Ink::Dark
     } else {
-        ([0.12, 0.12, 0.12], [0.80, 0.47, 0.13])
+        Ink::Light
+    };
+    paint(face, ink, edge)
+}
+
+fn paint(face: Face, ink: Ink, edge: u32) -> Vec<u8> {
+    let (fg, fill): (Rgb, Rgb) = match ink {
+        Ink::Template => ([0.0; 3], [0.0; 3]),
+        Ink::Dark => ([0.95, 0.95, 0.95], [0.89, 0.58, 0.24]),
+        Ink::Light => ([0.12, 0.12, 0.12], [0.80, 0.47, 0.13]),
     };
     let half = TRAY_GRID / 2.0;
     raster(edge, |x, y, px| {
@@ -347,6 +367,9 @@ pub const APP_SIZES: [u32; 10] = [16, 20, 24, 32, 40, 48, 64, 128, 256, 1024];
 /// `cafe --dump-icons <dir>`: every tray face and every app icon size as raw
 /// RGBA, named `<name>-<edge>.rgba`. `assets/make_icons.py` turns them into
 /// icon.ico and the PNGs; nothing in the shipped app needs a PNG encoder.
+///
+/// The `cup-*` faces are for the landing page, which shows the Windows
+/// dark-taskbar colours whatever OS the dump runs on.
 pub fn dump(dir: &str) -> std::io::Result<()> {
     std::fs::create_dir_all(dir)?;
     for (name, face) in [
@@ -362,6 +385,16 @@ pub fn dump(dir: &str) -> std::io::Result<()> {
                 )?;
             }
         }
+    }
+    for (name, face) in [
+        ("off", Face::Off),
+        ("awake", Face::Awake),
+        ("screen", Face::AwakeScreen),
+    ] {
+        std::fs::write(
+            format!("{dir}/cup-{name}-128.rgba"),
+            paint(face, Ink::Dark, 128),
+        )?;
     }
     for edge in APP_SIZES {
         std::fs::write(
