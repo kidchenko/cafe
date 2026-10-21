@@ -9,6 +9,8 @@
 - Notifications when a timer ends or the battery floor stops Cafe, with a
   toggle in the menu.
 - Hand edits to config.json are picked up without a restart.
+- Coffee facts: a daily "did you know?" in the menu, plus at most one
+  notification a day when a session starts. Toggle with "Coffee facts".
 - Landing page in `docs/`.
 
 ## [0.0.1] - 2026-10-20

@@ -209,7 +209,10 @@
     <button class="row on" data-toggle="screen" role="menuitemcheckbox"><span class="chk">✓</span><span>Keep screen on</span><span></span></button>
     <div class="row"><span></span><span>Stop on battery below</span><span class="arrow">20% ›</span></div>
     <div class="row on"><span class="chk">✓</span><span>Notifications</span><span></span></div>
+    <div class="row on"><span class="chk">✓</span><span>Coffee facts</span><span></span></div>
     <div class="row on"><span class="chk">✓</span><span>Run at login</span><span></span></div>
+    <div class="sep"></div>
+    <button class="row" data-fact role="menuitem"><span></span><span id="fact">☕  Brazil is the world's largest coffee producer and exporter.</span><span></span></button>
     <div class="sep"></div>
     <div class="row"><span></span><span>Quit Cafe</span><span></span></div>
   </div>
@@ -230,6 +233,7 @@
       <div class="card"><span class="ico">▶</span><h3>While an app runs</h3><p>Keeps awake while OBS, a game or a build is running, and stops when it closes.</p></div>
       <div class="card"><span class="ico">🔋</span><h3>Battery-aware</h3><p>On battery below a floor you choose, Cafe steps aside so the laptop isn't drained overnight.</p></div>
       <div class="card"><span class="ico">🔔</span><h3>Tells you when it stops</h3><p>A notification when a timer runs out or the battery floor kicks in.</p></div>
+      <div class="card"><span class="ico">🌱</span><h3>A little coffee culture</h3><p>A daily "did you know?" in the menu: where coffee comes from, what a cortado is, why it's called mocha.</p></div>
     </div>
   </section>
 
@@ -285,6 +289,14 @@
     var cup = document.getElementById("cup");
     var clock = document.getElementById("clock");
     var state = { mode: "off", screen: true };
+    var factIndex = 0;
+    var facts = [
+      "Brazil is the world's largest coffee producer and exporter.",
+      "A traditional cappuccino is ⅓ espresso, ⅓ milk, ⅓ foam.",
+      "Mocha is named after the port of Mocha, in Yemen.",
+      "A cortado is espresso 'cut' with a similar amount of warm milk.",
+      "Coffee beans are the seeds of a fruit: the coffee cherry."
+    ];
     var now = new Date();
     function hhmm(d) { return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
     function left(ms) { var m = Math.ceil(ms / 60000); return Math.floor(m / 60) + "h " + String(m % 60).padStart(2, "0") + "m"; }
@@ -313,6 +325,10 @@
       if (!b) return;
       if (b.dataset.mode) state.mode = b.dataset.mode;
       if (b.dataset.toggle === "screen") state.screen = !state.screen;
+      if (b.hasAttribute("data-fact")) {
+        factIndex = (factIndex + 1) % facts.length;
+        document.getElementById("fact").textContent = "☕  " + facts[factIndex];
+      }
       paint();
     });
     clock.textContent = hhmm(now);

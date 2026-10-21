@@ -19,7 +19,7 @@ use crate::power::{self, Battery};
 use crate::util::{
     duration_label, humanize, local_clock_at, local_seconds_of_day, next_whole_hours, now_unix,
 };
-use crate::{autostart, notify, procs, theme};
+use crate::{autostart, facts, notify, procs, theme};
 
 use std::time::{Duration, Instant, SystemTime};
 use tao::event_loop::EventLoopProxy;
@@ -36,6 +36,8 @@ const ID_EDIT: &str = "edit-config";
 const ID_FLOOR: &str = "floor:";
 const ID_SCREEN: &str = "screen";
 const ID_NOTIFY: &str = "notify";
+const ID_FACTS: &str = "facts";
+const ID_FACT: &str = "fact";
 const ID_AUTOSTART: &str = "autostart";
 const ID_QUIT: &str = "quit";
 /// Shared by every read-only row; nothing dispatches on it.
@@ -87,6 +89,8 @@ pub struct App {
     /// Whether "battery low" has been announced, so it is said once per dip
     /// rather than every tick.
     low_announced: bool,
+    /// How many facts past today's the menu has been clicked on to.
+    fact_offset: usize,
 
     // What is on screen, so a tick only repaints what changed.
     face: Face,
@@ -127,6 +131,7 @@ impl App {
             low: false,
             trigger: None,
             low_announced: false,
+            fact_offset: 0,
             face: Face::Off,
             header: String::new(),
             menu_hour: 0,
@@ -184,6 +189,16 @@ impl App {
                 self.rebuild_menu();
             }
             ID_EDIT => open_config(),
+            ID_FACTS => {
+                self.cfg.facts = !self.cfg.facts;
+                self.apply(true);
+            }
+            ID_FACT => {
+                // Asked for, so shown even with notifications off.
+                notify::show("Did you know?", self.fact(), None);
+                self.fact_offset += 1;
+                self.rebuild_menu();
+            }
             other => {
                 if let Some(mins) = parse(other, ID_FOR) {
                     self.set_mode(Mode::Until {
@@ -284,12 +299,31 @@ impl App {
     }
 
     fn set_mode(&mut self, mode: Mode) {
+        let was_off = self.cfg.mode == Mode::Off;
         self.cfg.mode = mode;
         // Asking for a session while already under the floor is answered,
         // not silently undone on the next tick.
         self.low_announced = false;
         self.observe();
+        if was_off && self.cfg.mode != Mode::Off {
+            self.daily_fact();
+        }
         self.apply(true);
+    }
+
+    fn fact(&self) -> &'static str {
+        facts::for_day(facts::today(), self.fact_offset)
+    }
+
+    /// The once-a-day fact, on the first session started that day. Saved by
+    /// the caller's `apply(true)`.
+    fn daily_fact(&mut self) {
+        let today = facts::today();
+        if !self.cfg.facts || !self.cfg.notify || self.cfg.last_fact_day == today {
+            return;
+        }
+        self.cfg.last_fact_day = today;
+        notify::show("Did you know?", self.fact(), None);
     }
 
     /// Refresh battery and process state, and enforce the battery floor on
@@ -533,6 +567,13 @@ impl App {
             None,
         ));
         let _ = menu.append(&CheckMenuItem::with_id(
+            ID_FACTS,
+            "Coffee facts",
+            true,
+            self.cfg.facts,
+            None,
+        ));
+        let _ = menu.append(&CheckMenuItem::with_id(
             ID_AUTOSTART,
             "Run at login",
             true,
@@ -540,6 +581,15 @@ impl App {
             None,
         ));
         let _ = menu.append(&PredefinedMenuItem::separator());
+        if self.cfg.facts {
+            let _ = menu.append(&MenuItem::with_id(
+                ID_FACT,
+                format!("\u{2615}  {}", self.fact()),
+                true,
+                None,
+            ));
+            let _ = menu.append(&PredefinedMenuItem::separator());
+        }
         let _ = menu.append(&MenuItem::with_id(ID_QUIT, "Quit Cafe", true, None));
 
         self.tray.set_menu(Some(Box::new(menu)));

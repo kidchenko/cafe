@@ -29,6 +29,10 @@ Amphetamine, and the same small binary runs on Windows and macOS.
   you plug in. The current charge shows in the menu.
 - **Notifications**: notifies you when a timer runs out or the battery floor
   stops Cafe.
+- **Coffee facts**: a "did you know?" line near the bottom of the menu that
+  changes daily. Click it to see the full fact and get the next one. The first
+  session you start each day also shows one as a notification, and never more
+  than one a day.
 - **Run at login**
 - **Quit Cafe**
 
@@ -84,6 +88,7 @@ within a few seconds, no restart needed):
 | `batteryFloor` | percent, `0` = never stop |
 | `durations` | the "Keep awake for" choices, in minutes |
 | `notify` | `true` / `false` |
+| `facts` | `true` / `false` |
 
 On Windows, notifications show up as "Cafe" when installed with the installer.
 A portable copy shows them under PowerShell's name instead, because Windows

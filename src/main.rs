@@ -20,6 +20,7 @@ mod app;
 mod autostart;
 mod awake;
 mod config;
+mod facts;
 mod icon;
 mod log;
 mod notify;

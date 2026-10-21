@@ -39,6 +39,11 @@ pub struct Config {
     pub apps: Vec<String>,
     /// Notify when a timed session ends or the battery floor stops Cafe.
     pub notify: bool,
+    /// Coffee facts: one in the menu, and at most one notification a day.
+    pub facts: bool,
+    /// The day (days since the epoch) the last fact notification was shown,
+    /// so a restart does not bring another one.
+    pub last_fact_day: u64,
 }
 
 impl Default for Config {
@@ -52,6 +57,8 @@ impl Default for Config {
             battery_floor: 20,
             apps: Vec::new(),
             notify: true,
+            facts: true,
+            last_fact_day: 0,
         }
     }
 }
