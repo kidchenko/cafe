@@ -11,13 +11,15 @@ cask "cafe" do
   desc "Keep your Mac awake from the menu bar"
   homepage "https://github.com/kidchenko/cafe"
 
-  depends_on macos: ">= :big_sur"
+  depends_on macos: :big_sur
 
   app "Cafe.app"
 
   # Ad-hoc signed, not notarized: without this, Gatekeeper refuses to open it.
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{appdir}/Cafe.app"]
+  postflight_steps do
+    run "/usr/bin/xattr",
+        args:           ["-dr", "com.apple.quarantine", "{{appdir}}/Cafe.app"],
+        writable_paths: ["{{appdir}}/Cafe.app"]
   end
 
   uninstall quit:      "com.kidchenko.cafe",
