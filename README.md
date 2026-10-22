@@ -7,6 +7,8 @@
 Keep your Mac or PC awake, from the tray.<br>
 For downloads, renders, presentations, long builds, or just reading.
 
+[Website](https://josebarbosa.dev/cafe/) &nbsp;|&nbsp; [Download](https://github.com/kidchenko/cafe/releases/latest)
+
 <sub><i>Café</i> is Portuguese for <i>coffee</i>.</sub>
 
 </div>
