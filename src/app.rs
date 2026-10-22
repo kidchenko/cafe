@@ -52,6 +52,8 @@ const TICK: Duration = Duration::from_secs(30);
 /// Faster while apps are watched, so opening one is noticed promptly. A
 /// process snapshot is a few hundred microseconds; this is still nothing.
 const TICK_WATCHING: Duration = Duration::from_secs(10);
+/// While a rebuild waits for the menu to close.
+const MENU_RETRY: Duration = Duration::from_secs(1);
 
 /// How many whole hours the timer offers after its durations.
 const UNTIL_CHOICES: u32 = 6;
@@ -97,6 +99,11 @@ pub struct App {
     // What is on screen, so a tick only repaints what changed.
     face: Face,
     header: String,
+    /// The status line at the top of the menu, kept so its text can change
+    /// while the menu is open.
+    header_item: Option<MenuItem>,
+    /// A rebuild was put off because the menu was open.
+    menu_stale: bool,
     menu_hour: u64,
     windowed: Vec<procs::App>,
 
@@ -112,14 +119,18 @@ impl App {
         forward_tray_events(&proxy);
 
         let dark_taskbar = theme::taskbar_is_dark();
-        let tray = TrayIconBuilder::new()
+        let icon = tray_image(Face::Off, dark_taskbar)?;
+        // On macOS the icon is a template: AppKit tints it for the menu bar.
+        #[cfg(target_os = "macos")]
+        let builder = TrayIconBuilder::new().with_icon_templated(icon);
+        #[cfg(windows)]
+        let builder = TrayIconBuilder::new().with_icon(icon);
+        let tray = builder
             .with_tooltip("Cafe")
-            .with_icon(tray_image(Face::Off, dark_taskbar)?)
             // macOS menu bar items open their menu on click; that is what every
             // other one does. On Windows left click toggles and the menu lives
             // on the right button, like PowerToys Awake.
             .with_menu_on_left_click(cfg!(target_os = "macos"))
-            .with_icon_as_template(cfg!(target_os = "macos"))
             .build()
             .map_err(|e| format!("could not create the tray icon: {e}"))?;
 
@@ -136,6 +147,8 @@ impl App {
             fact_offset: 0,
             face: Face::Off,
             header: String::new(),
+            header_item: None,
+            menu_stale: false,
             menu_hour: 0,
             windowed: Vec::new(),
             cfg_mtime: Config::modified(),
@@ -277,18 +290,25 @@ impl App {
             self.paint_icon(true);
         }
         let windowed = self.add_candidates();
-        if self.header_text() != self.header
+        if self.menu_stale
             || local_seconds_of_day() / 3600 != self.menu_hour
             || windowed != self.windowed
         {
             self.rebuild_menu();
+        } else {
+            // The countdown changes every minute; that alone never needs a
+            // new menu.
+            self.update_header();
         }
     }
 
     /// When the event loop should next wake: the end of a timed session if
     /// that is sooner than the regular tick.
     pub fn next_wake(&self) -> Instant {
-        let every = if self.cfg.apps.is_empty() {
+        // Check back soon for the menu closing, so it's never opened stale.
+        let every = if self.menu_stale {
+            MENU_RETRY
+        } else if self.cfg.apps.is_empty() {
             TICK
         } else {
             TICK_WATCHING
@@ -454,9 +474,10 @@ impl App {
         self.face = face;
         match tray_image(face, self.dark_taskbar) {
             Ok(img) => {
-                let _ = self.tray.set_icon(Some(img));
                 #[cfg(target_os = "macos")]
-                self.tray.set_icon_as_template(true);
+                let _ = self.tray.set_icon_templated(Some(img));
+                #[cfg(windows)]
+                let _ = self.tray.set_icon(Some(img));
             }
             Err(e) => lerror!("{e}"),
         }
@@ -501,7 +522,29 @@ impl App {
             .collect()
     }
 
+    /// The status line and tooltip, changed in place.
+    fn update_header(&mut self) {
+        let header = self.header_text();
+        if header == self.header {
+            return;
+        }
+        if let Some(item) = &self.header_item {
+            item.set_text(&header);
+        }
+        let _ = self.tray.set_tooltip(Some(format!("Cafe\n{header}")));
+        self.header = header;
+    }
+
+    /// Build the menu afresh. Replacing a menu that is open closes it on
+    /// macOS, so while it's open only the status line changes, and the
+    /// rebuild happens once it closes.
     fn rebuild_menu(&mut self) {
+        if menu_is_open() {
+            self.update_header();
+            self.menu_stale = true;
+            return;
+        }
+        self.menu_stale = false;
         self.header = self.header_text();
         let sod = local_seconds_of_day();
         self.menu_hour = sod / 3600;
@@ -511,7 +554,9 @@ impl App {
             .set_tooltip(Some(format!("Cafe\n{}", self.header)));
 
         let menu = Menu::new();
-        let _ = menu.append(&MenuItem::with_id(ID_INERT, &self.header, false, None));
+        let header = MenuItem::with_id(ID_INERT, &self.header, false, None);
+        let _ = menu.append(&header);
+        self.header_item = Some(header);
         let _ = menu.append(&PredefinedMenuItem::separator());
 
         // Actions first, then the one setting people flip often, then the
@@ -669,6 +714,23 @@ impl App {
         }
         sub
     }
+}
+
+/// Whether a menu is open right now. On macOS the run loop is in event
+/// tracking mode for exactly as long as a menu is being shown.
+#[cfg(target_os = "macos")]
+fn menu_is_open() -> bool {
+    use objc2_app_kit::NSEventTrackingRunLoopMode;
+    use objc2_foundation::NSRunLoop;
+    let mode = NSRunLoop::currentRunLoop().currentMode();
+    mode.is_some_and(|m| *m == *unsafe { NSEventTrackingRunLoopMode })
+}
+
+/// Windows has no such signal. Its tray menu runs a modal loop of its own,
+/// and this problem hasn't been seen there.
+#[cfg(windows)]
+fn menu_is_open() -> bool {
+    false
 }
 
 fn parse(id: &str, prefix: &str) -> Option<u64> {
