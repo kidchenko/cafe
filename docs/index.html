@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cafe — keep your Mac or PC awake</title>
-<meta name="description" content="A coffee cup in the tray that keeps Windows and macOS from sleeping: indefinitely, for a while, until a time, or while an app runs. Free and open source.">
+<title>Cafe: keep your Mac or PC awake</title>
+<meta name="description" content="A coffee cup in the tray that keeps your Windows PC or Mac from going to sleep. Keep it awake for as long as you like, until a set time, or while an app is open. Free and open source.">
 <link rel="icon" href="img/icon-256.png" type="image/png">
 
-<meta property="og:title" content="Cafe — keep your Mac or PC awake">
-<meta property="og:description" content="A coffee cup in the tray that keeps your computer from sleeping. For Windows and macOS.">
+<meta property="og:title" content="Cafe: keep your Mac or PC awake">
+<meta property="og:description" content="A coffee cup in the tray that keeps your computer from going to sleep. For Windows and macOS.">
 <meta property="og:image" content="img/icon-256.png">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
@@ -150,7 +150,6 @@
   .card { background: var(--raised); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 20px 18px; }
   .card h3 { margin: 0 0 6px; font-size: 1.04rem; letter-spacing: -.01em; }
   .card p { margin: 0; color: var(--dim); font-size: .95rem; line-height: 1.55; }
-  .card .ico { font-size: 1.35rem; line-height: 1; margin-bottom: 12px; display: block; }
 
   .faces { display: flex; gap: 14px; flex-wrap: wrap; }
   .face { flex: 1 1 12rem; display: flex; gap: 14px; align-items: center;
@@ -186,25 +185,25 @@
 <header class="wrap">
   <img class="mark" src="img/icon-256.png" alt="" width="128" height="128">
   <h1>Cafe</h1>
-  <p class="tagline">Keeps your Mac or PC awake, right from the tray.</p>
+  <p class="tagline">Keep your Mac or PC awake from the tray.</p>
 
   <div class="cta">
     <a class="download dl-win" href="https://github.com/kidchenko/cafe/releases/latest/download/Cafe-Setup.exe">Download for Windows</a>
     <a class="download ghost dl-mac" href="https://github.com/kidchenko/cafe/releases/latest/download/Cafe.dmg">Download for macOS</a>
   </div>
-  <p class="alt for-win">or <code>winget install kidchenko.Cafe</code> &nbsp;·&nbsp; <code>choco install cafe</code></p>
+  <p class="alt for-win">or <code>winget install kidchenko.Cafe</code> or <code>choco install cafe</code></p>
   <p class="alt for-mac">or <code>brew install --cask kidchenko/tap/cafe</code></p>
 </header>
 
 <div class="wrap demo" aria-label="Interactive preview of Cafe's tray menu">
   <div class="menu" role="menu" id="menu">
-    <div class="row head"><span></span><span id="status">Off — normal power plan</span><span></span></div>
+    <div class="row head"><span></span><span id="status">Off, your computer sleeps as usual</span><span></span></div>
     <div class="sep"></div>
-    <button class="row on" data-mode="off" role="menuitemradio"><span class="chk">✓</span><span>Off (use power plan)</span><span></span></button>
-    <button class="row" data-mode="on" role="menuitemradio"><span class="chk">✓</span><span>Keep awake indefinitely</span><span></span></button>
+    <button class="row on" data-mode="off" role="menuitemradio"><span class="chk">✓</span><span>Off</span><span></span></button>
+    <button class="row" data-mode="on" role="menuitemradio"><span class="chk">✓</span><span>Keep awake</span><span></span></button>
     <button class="row" data-mode="for" role="menuitem"><span class="chk">✓</span><span>Keep awake for</span><span class="arrow">›</span></button>
     <button class="row" data-mode="until" role="menuitem"><span class="chk">✓</span><span>Keep awake until</span><span class="arrow">›</span></button>
-    <button class="row" data-mode="app" role="menuitem"><span class="chk">✓</span><span>Keep awake while app runs</span><span class="arrow">›</span></button>
+    <button class="row" data-mode="app" role="menuitem"><span class="chk">✓</span><span>Keep awake while an app is open</span><span class="arrow">›</span></button>
     <div class="sep"></div>
     <button class="row on" data-toggle="screen" role="menuitemcheckbox"><span class="chk">✓</span><span>Keep screen on</span><span></span></button>
     <div class="row"><span></span><span>Stop on battery below</span><span class="arrow">20% ›</span></div>
@@ -212,7 +211,7 @@
     <div class="row on"><span class="chk">✓</span><span>Coffee facts</span><span></span></div>
     <div class="row on"><span class="chk">✓</span><span>Run at login</span><span></span></div>
     <div class="sep"></div>
-    <button class="row" data-fact role="menuitem"><span></span><span id="fact">☕  Brazil is the world's largest coffee producer and exporter.</span><span></span></button>
+    <button class="row" data-fact role="menuitem"><span></span><span id="fact">Brazil is the world's largest coffee producer and exporter.</span><span></span></button>
     <div class="sep"></div>
     <div class="row"><span></span><span>Quit Cafe</span><span></span></div>
   </div>
@@ -224,35 +223,35 @@
 
 <main class="wrap">
   <section>
-    <h2>Stay awake on your terms</h2>
-    <p class="lede">For downloads, renders, presentations, long builds, or just reading without the screen going dark.</p>
+    <h2>What it does</h2>
+    <p class="lede">Good for downloads, renders, presentations, long builds, or reading without the screen going dark.</p>
     <div class="grid">
-      <div class="card"><span class="ico">☕</span><h3>Indefinitely</h3><p>One click on the cup and the machine stays up until you click again.</p></div>
-      <div class="card"><span class="ico">⏱</span><h3>For a while</h3><p>15 minutes to 8 hours. The time left is in the menu and the tooltip.</p></div>
-      <div class="card"><span class="ico">🕔</span><h3>Until a time</h3><p>Pick 17:00 and walk away. At 17:00 the normal power plan takes over.</p></div>
-      <div class="card"><span class="ico">▶</span><h3>While an app runs</h3><p>Keeps awake while OBS, a game or a build is running, and stops when it closes.</p></div>
-      <div class="card"><span class="ico">🔋</span><h3>Battery-aware</h3><p>On battery below a floor you choose, Cafe steps aside so the laptop isn't drained overnight.</p></div>
-      <div class="card"><span class="ico">🔔</span><h3>Tells you when it stops</h3><p>A notification when a timer runs out or the battery floor kicks in.</p></div>
-      <div class="card"><span class="ico">🌱</span><h3>A little coffee culture</h3><p>A daily "did you know?" in the menu: where coffee comes from, what a cortado is, why it's called mocha.</p></div>
+      <div class="card"><h3>As long as you like</h3><p>Click the cup and your computer stays awake until you click it again.</p></div>
+      <div class="card"><h3>For a while</h3><p>Anywhere from 15 minutes to 8 hours. The menu shows how long is left.</p></div>
+      <div class="card"><h3>Until a set time</h3><p>Pick 17:00 and walk away. At 17:00 your computer goes back to its usual sleep settings.</p></div>
+      <div class="card"><h3>While an app is open</h3><p>Stays awake while OBS, a game or a build is running, and stops when you close it.</p></div>
+      <div class="card"><h3>Easy on your battery</h3><p>When the battery drops below a level you pick, Cafe turns itself off so your laptop doesn't run flat overnight.</p></div>
+      <div class="card"><h3>Tells you when it stops</h3><p>You get a notification when a timer ends or a low battery turns Cafe off.</p></div>
+      <div class="card"><h3>A coffee fact a day</h3><p>Like where coffee comes from, what a cortado is, or why it's called mocha.</p></div>
     </div>
   </section>
 
   <section>
-    <h2>The cup tells you</h2>
-    <p class="lede">The cup in the tray shows the state at a glance.</p>
+    <h2>Reading the cup</h2>
+    <p class="lede">One look at the tray tells you what Cafe is doing.</p>
     <div class="faces">
-      <div class="face"><div class="chip"><img src="img/cup-off.png" alt=""></div><div><b>Off</b><span>Your normal power plan.</span></div></div>
-      <div class="face"><div class="chip"><img src="img/cup-awake.png" alt=""></div><div><b>Awake</b><span>No sleep. The screen may still turn off.</span></div></div>
-      <div class="face"><div class="chip"><img src="img/cup-screen.png" alt=""></div><div><b>Awake, screen on</b><span>Neither sleeps.</span></div></div>
+      <div class="face"><div class="chip"><img src="img/cup-off.png" alt=""></div><div><b>Off</b><span>Your computer sleeps as usual.</span></div></div>
+      <div class="face"><div class="chip"><img src="img/cup-awake.png" alt=""></div><div><b>Awake</b><span>No sleep, but the screen can still turn off.</span></div></div>
+      <div class="face"><div class="chip"><img src="img/cup-screen.png" alt=""></div><div><b>Awake, screen on</b><span>Nothing goes to sleep.</span></div></div>
     </div>
   </section>
 
   <section>
-    <h2>Never touches your power plan</h2>
+    <h2>It leaves your settings alone</h2>
     <div class="how">
-      <p>Cafe doesn't change any power settings. It asks the OS for a temporary request instead: <b>SetThreadExecutionState</b> on Windows, an <b>IOKit power assertion</b> on macOS.</p>
-      <p>Switch it off, quit it, or let it crash, and the request ends with it. The machine goes straight back to the plan you already had, so there's nothing to restore.</p>
-      <p>You can check it yourself with <code>powercfg /requests</code> or <code>pmset -g assertions</code>, where it shows up under its own name.</p>
+      <p>Cafe doesn't change your power settings. It just asks the OS to stay awake for now, using <b>SetThreadExecutionState</b> on Windows and an <b>IOKit power assertion</b> on macOS.</p>
+      <p>If you turn it off, quit it, or it crashes, the request goes away with it and your computer goes back to how it was. There's nothing to undo.</p>
+      <p>You can see it for yourself with <code>powercfg /requests</code> or <code>pmset -g assertions</code>. It shows up as Cafe.</p>
     </div>
   </section>
 
@@ -265,14 +264,14 @@
       <tr><td>macOS</td><td><a href="https://github.com/kidchenko/cafe/releases/latest/download/Cafe.dmg">Cafe.dmg</a> (Apple silicon and Intel)</td></tr>
       <tr><td>Homebrew</td><td><code>brew install --cask kidchenko/tap/cafe</code></td></tr>
     </table>
-    <p class="alt" style="text-align:left">Windows 10 or later, macOS 11 or later. Under 1 MB, no runtime to install.</p>
+    <p class="alt" style="text-align:left">Windows 10 or later, or macOS 11 or later. It's under 1 MB and needs nothing else installed.</p>
   </section>
 </main>
 
 <footer class="wrap">
-  Made by <a href="https://github.com/kidchenko">kidchenko</a> · MIT licensed ·
-  <a href="https://github.com/kidchenko/cafe">Source</a> ·
-  <a href="https://github.com/kidchenko/cafe/releases">Releases</a>
+  Made by <a href="https://github.com/kidchenko">kidchenko</a>. MIT licensed.
+  <a href="https://github.com/kidchenko/cafe">Source</a> and
+  <a href="https://github.com/kidchenko/cafe/releases">releases</a> on GitHub.
 </footer>
 
 <script>
@@ -292,10 +291,10 @@
     var factIndex = 0;
     var facts = [
       "Brazil is the world's largest coffee producer and exporter.",
-      "A traditional cappuccino is ⅓ espresso, ⅓ milk, ⅓ foam.",
+      "A cappuccino is equal parts espresso, steamed milk and foam.",
       "Mocha is named after the port of Mocha, in Yemen.",
       "A cortado is espresso 'cut' with a similar amount of warm milk.",
-      "Coffee beans are the seeds of a fruit: the coffee cherry."
+      "Coffee beans are seeds. They grow inside a fruit, the coffee cherry."
     ];
     var now = new Date();
     function hhmm(d) { return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
@@ -304,11 +303,11 @@
     // "Until" picks the second whole hour from now, like the menu's 2nd entry.
     var atHour = new Date(now); atHour.setHours(now.getHours() + 2, 0, 0, 0);
     var labels = {
-      off: function () { return "Off — normal power plan"; },
+      off: function () { return "Off, your computer sleeps as usual"; },
       on: function (s) { return "Awake" + s; },
-      for: function (s) { return "Awake" + s + " until " + hhmm(inHour) + " — 1h 00m left"; },
-      until: function (s) { return "Awake" + s + " until " + hhmm(atHour) + " — " + left(atHour - now) + " left"; },
-      app: function (s) { return "Awake" + s + " while OBS runs"; }
+      for: function (s) { return "Awake until " + hhmm(inHour) + " (1h 00m left)" + s; },
+      until: function (s) { return "Awake until " + hhmm(atHour) + " (" + left(atHour - now) + " left)" + s; },
+      app: function (s) { return "Awake while OBS is open" + s; }
     };
     function paint() {
       var s = state.screen ? ", screen on" : "";
@@ -327,7 +326,7 @@
       if (b.dataset.toggle === "screen") state.screen = !state.screen;
       if (b.hasAttribute("data-fact")) {
         factIndex = (factIndex + 1) % facts.length;
-        document.getElementById("fact").textContent = "☕  " + facts[factIndex];
+        document.getElementById("fact").textContent = facts[factIndex];
       }
       paint();
     });

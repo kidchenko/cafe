@@ -43,13 +43,6 @@ const ID_QUIT: &str = "quit";
 /// Shared by every read-only row; nothing dispatches on it.
 const ID_INERT: &str = "inert";
 
-/// What the OS's own sleep settings are called. "Power plan" means nothing to
-/// a Mac user, who knows them as Energy (or Battery) settings.
-#[cfg(windows)]
-const OS_SETTINGS: &str = "power plan";
-#[cfg(target_os = "macos")]
-const OS_SETTINGS: &str = "Energy settings";
-
 /// How often the loop wakes when nothing is due: often enough to keep the
 /// countdown honest to the minute and to catch the battery crossing its floor,
 /// rare enough to be invisible in Task Manager.
@@ -248,8 +241,8 @@ impl App {
                 self.cfg.mode = Mode::Off;
                 if self.cfg.notify {
                     notify::show(
-                        "Keep-awake ended",
-                        &format!("Your timer ran out. Back to your normal {OS_SETTINGS}."),
+                        "Time's up",
+                        &format!("Your {MACHINE} can go to sleep again."),
                         None,
                     );
                 }
@@ -372,10 +365,7 @@ impl App {
                 let percent = self.battery.map(|b| b.percent).unwrap_or(0);
                 notify::show(
                     &format!("Battery at {percent}%"),
-                    &format!(
-                        "Cafe won't keep your {MACHINE} awake on battery below {}%.",
-                        self.cfg.battery_floor
-                    ),
+                    &format!("Cafe let go so your {MACHINE} can sleep and save power."),
                     None,
                 );
             }
@@ -469,7 +459,7 @@ impl App {
 
     fn header_text(&self) -> String {
         if self.low {
-            return format!("Off \u{2014} battery below {}%", self.cfg.battery_floor);
+            return format!("Off while the battery is under {}%", self.cfg.battery_floor);
         }
         let screen = if self.cfg.keep_screen_on {
             ", screen on"
@@ -477,11 +467,11 @@ impl App {
             ""
         };
         match (self.cfg.mode, &self.trigger) {
-            (Mode::Off, None) => format!("Off \u{2014} normal {OS_SETTINGS}"),
-            (Mode::Off, Some(app)) => format!("Awake{screen} while {app} runs"),
+            (Mode::Off, None) => format!("Off, your {MACHINE} sleeps as usual"),
+            (Mode::Off, Some(app)) => format!("Awake while {app} is open{screen}"),
             (Mode::Indefinite, _) => format!("Awake{screen}"),
             (Mode::Until { at }, _) => format!(
-                "Awake{screen} until {} \u{2014} {} left",
+                "Awake until {} ({} left){screen}",
                 local_clock_at(at),
                 humanize(at.saturating_sub(now_unix()))
             ),
@@ -504,7 +494,7 @@ impl App {
         self.windowed = self.add_candidates();
         let _ = self
             .tray
-            .set_tooltip(Some(format!("Cafe \u{2014} {}", self.header)));
+            .set_tooltip(Some(format!("Cafe\n{}", self.header)));
 
         let menu = Menu::new();
         let _ = menu.append(&MenuItem::with_id(ID_INERT, &self.header, false, None));
@@ -513,14 +503,14 @@ impl App {
         let mode = self.cfg.mode;
         let _ = menu.append(&CheckMenuItem::with_id(
             ID_OFF,
-            format!("Off (use {OS_SETTINGS})"),
+            "Off",
             true,
             mode == Mode::Off,
             None,
         ));
         let _ = menu.append(&CheckMenuItem::with_id(
             ID_INDEFINITE,
-            "Keep awake indefinitely",
+            "Keep awake",
             true,
             mode == Mode::Indefinite,
             None,
@@ -589,12 +579,7 @@ impl App {
         ));
         let _ = menu.append(&PredefinedMenuItem::separator());
         if self.cfg.facts {
-            let _ = menu.append(&MenuItem::with_id(
-                ID_FACT,
-                format!("\u{2615}  {}", self.fact()),
-                true,
-                None,
-            ));
+            let _ = menu.append(&MenuItem::with_id(ID_FACT, self.fact(), true, None));
             let _ = menu.append(&PredefinedMenuItem::separator());
         }
         let _ = menu.append(&MenuItem::with_id(ID_QUIT, "Quit Cafe", true, None));
@@ -606,14 +591,14 @@ impl App {
     /// that could be added, then a way out to the config for anything without a
     /// window, like a build tool or ffmpeg.
     fn apps_menu(&self) -> Submenu {
-        let sub = Submenu::new("Keep awake while app runs", true);
+        let sub = Submenu::new("Keep awake while an app is open", true);
         if self.cfg.apps.is_empty() {
             let _ = sub.append(&MenuItem::with_id(ID_INERT, "No apps yet", false, None));
         }
         for app in &self.cfg.apps {
             let running = self.trigger.as_deref() == Some(app.as_str());
             let label = if running {
-                format!("{app}  (running)")
+                format!("{app} (open now)")
             } else {
                 app.clone()
             };
@@ -627,7 +612,7 @@ impl App {
         }
         let _ = sub.append(&PredefinedMenuItem::separator());
 
-        let add = Submenu::new("Add running app", !self.windowed.is_empty());
+        let add = Submenu::new("Add an open app", !self.windowed.is_empty());
         for name in &self.windowed {
             let _ = add.append(&MenuItem::with_id(
                 format!("{ID_APP_ADD}{name}"),
@@ -649,7 +634,7 @@ impl App {
     fn battery_menu(&self) -> Submenu {
         let has_battery = self.battery.is_some();
         let title = match self.battery {
-            Some(b) => format!("Stop on battery below  ({}%)", b.percent),
+            Some(b) => format!("Stop on battery below ({}% now)", b.percent),
             None => "Stop on battery below".to_string(),
         };
         let sub = Submenu::new(title, has_battery);

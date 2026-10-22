@@ -7,28 +7,28 @@
 Keep your Mac or PC awake, from the tray.<br>
 For downloads, renders, presentations, long builds, or just reading.
 
-<sub><i>café</i> — Portuguese for <i>coffee</i></sub>
+<sub><i>Café</i> is Portuguese for <i>coffee</i>.</sub>
 
 </div>
 
-Cafe is a coffee cup in the tray. Click it and your computer stays awake; click
-again and your normal power plan takes over. It does what PowerToys Awake and
-Amphetamine do, on both Windows and macOS.
+Cafe is a coffee cup in the tray. Click it and your computer stays awake. Click
+it again and your computer goes back to sleeping the way it normally does. It's
+like PowerToys Awake or Amphetamine, and it runs on both Windows and macOS.
 
-A single 0.5 MB executable, no runtime dependencies. Sits in the tray using
-about 2 MB of private memory and no measurable CPU.
+It's one small executable (about 0.5 MB) with nothing else to install, and it
+uses about 2 MB of memory while it sits there.
 
 ## The cup
 
 | | |
 |---|---|
-| **Outline cup** | Off. Your normal power plan applies. |
-| **Filled cup** | Awake. The system won't idle-sleep, but the screen may still turn off. |
-| **Cup with steam** | Awake, screen on. Neither the system nor the display sleeps. |
+| **Outline cup** | Off. Your computer sleeps as usual. |
+| **Filled cup** | Awake. The computer won't go to sleep, but the screen can still turn off. |
+| **Cup with steam** | Awake with the screen on. Nothing goes to sleep. |
 
 On Windows, **left-click** toggles between off and awake, and **right-click**
-opens the menu. On macOS, clicking opens the menu, like every other menu bar
-item.
+opens the menu. On macOS, clicking opens the menu, same as any other menu bar
+icon.
 
 Running `cafe` again while it's already in the tray toggles the running copy
 instead of starting a second one. Pin it, bind it to a hotkey, or run it from a
@@ -39,53 +39,55 @@ too.
 
 | | |
 |---|---|
-| **Off (use power plan)** | Drops the request. The OS goes back to your own settings. On macOS it reads **Off (use Energy settings)**. |
-| **Keep awake indefinitely** | Until you switch it off. |
-| **Keep awake for ▸** | 15 min, 30 min, 1 h, 2 h, 4 h or 8 h, then back to off. The time left is at the top of the menu and in the tooltip. |
-| **Keep awake until ▸** | One of the next eight whole hours (17:00, 18:00 and so on). |
-| **Keep awake while app runs ▸** | Stays awake while any app on your list is running, whatever the mode. [More below.](#keep-awake-while-an-app-runs) |
-| **Keep screen on** | Also keeps the display awake. |
-| **Stop on battery below ▸** | Never, 10%, 20%, 30% or 50%. Default 20%. [More below.](#battery) |
-| **Notifications** | When a timer runs out or the battery floor stops Cafe. |
-| **Coffee facts** | A daily "did you know?" line in the menu. [More below.](#coffee-facts) |
-| **Run at login** | Per-user, no admin. On macOS it's a regular login item in System Settings > General > Login Items, where you can also switch it off. Move Cafe.app to Applications first. |
+| **Off** | Your computer goes back to its own sleep settings. |
+| **Keep awake** | Stays awake until you turn it off. |
+| **Keep awake for** | 15 min, 30 min, 1 h, 2 h, 4 h or 8 h, then it turns itself off. The menu and the tooltip show how long is left. |
+| **Keep awake until** | Pick a time from the next eight hours (17:00, 18:00 and so on). |
+| **Keep awake while an app is open** | Stays awake whenever an app on your list is running. [More below.](#keep-awake-while-an-app-is-open) |
+| **Keep screen on** | Keeps the display on too. |
+| **Stop on battery below** | Never, 10%, 20%, 30% or 50%. The default is 20%. [More below.](#battery) |
+| **Notifications** | Lets you know when a timer ends or a low battery stops Cafe. |
+| **Coffee facts** | A coffee fact of the day in the menu. [More below.](#coffee-facts) |
+| **Run at login** | Just for your user, no admin needed. On macOS it shows up in System Settings > General > Login Items, and you can turn it off there too. Move Cafe.app to Applications first. |
 
-The mode is saved. A timer that hasn't run out yet picks up where it left off
-after a restart; one that ran out while Cafe was closed comes back off.
+Cafe remembers what it was doing. If you restart in the middle of a timer, the
+timer carries on. If it ran out while Cafe was closed, Cafe starts up off.
 
-### Keep awake while an app runs
+### Keep awake while an app is open
 
-For the things you'd otherwise forget to switch on and off around: OBS, a game,
-a video call, a long build.
+Handy for things you'd forget to babysit: OBS, a game, a video call, a long
+build.
 
-- **Add running app ▸** lists the apps that have a window right now. Pick one
-  and it's on the list.
-- **Edit app list…** opens the config file, for things without a window, like
-  `ffmpeg`, `cargo` or `rsync`.
-- Click a listed app to remove it.
+- **Add an open app** lists the apps that have a window open right now. Pick
+  one to add it.
+- **Edit app list…** opens the config file. Use it for things that don't have a
+  window, like `ffmpeg`, `cargo` or `rsync`.
+- Click an app on the list to remove it.
 
-Matching uses the executable name, ignoring case and `.exe`, so `OBS64.exe` and
-`obs64` are the same entry. Cafe checks every 10 seconds while the list isn't
-empty, and the menu header shows which app is holding it awake.
+Cafe matches on the program's file name and ignores case and `.exe`, so
+`OBS64.exe` and `obs64` count as the same app. While the list has anything on
+it, Cafe checks every 10 seconds, and the top of the menu tells you which app
+is keeping it awake.
 
 ### Battery
 
-On battery and below the floor, Cafe ends any session and ignores watched apps
-until you plug in. It tells you once when that happens, and the menu shows the
-current charge. On a desktop with no battery the option is greyed out.
+If you're on battery and the charge drops below your limit, Cafe turns itself
+off and ignores your app list until you plug in again. You get one notification
+when that happens, and the menu shows the current charge. On a desktop with no
+battery, the option is greyed out.
 
-It's on by default (20%) because a laptop kept awake on battery overnight is the
-one problem Cafe can cause rather than prevent.
+It's on by default (at 20%) so a laptop left awake on battery doesn't run flat
+overnight.
 
 ### Coffee facts
 
-One fact a day sits near the bottom of the menu: where coffee comes from, what a
-cortado is, why it's called mocha. Click it to read it in full and get the next
-one. The first session you start each day also shows one as a notification, and
-never more than one a day.
+There's a new fact near the bottom of the menu every day, like where coffee
+comes from, what a cortado is, or why it's called mocha. Click it to see the
+next one. The first time you turn Cafe on each day, you also get one as a
+notification. That's the only one you'll get that day.
 
-Forty facts, each one checked. Where the popular story is a legend, the fact
-says so.
+There are forty of them, and each one has been fact-checked. If the popular story is just
+a legend, the fact says so.
 
 ## Install
 
@@ -101,13 +103,13 @@ Or grab [**Cafe-Setup.exe**](https://github.com/kidchenko/cafe/releases/latest/d
 directly. Each release also ships a portable `cafe-x.y.z-x64.exe` that runs
 without installing; see [Releases](https://github.com/kidchenko/cafe/releases).
 
-The binary isn't code-signed, so SmartScreen warns on first run: click **More
-info → Run anyway**.
+The app isn't code-signed yet, so SmartScreen warns you the first time you run
+it. Click **More info**, then **Run anyway**.
 
-Use the installer if you want notifications to say "Cafe". Windows takes a
-notification's name from a Start menu shortcut, and only the installer creates
-one; a portable copy shows them under PowerShell's name instead. The installer
-also offers to start Cafe when you sign in.
+If you want notifications to show up as "Cafe", use the installer. Windows
+takes a notification's name from the Start menu shortcut, and only the
+installer makes one. The portable copy's notifications show up as PowerShell.
+The installer can also start Cafe when you sign in.
 
 ### macOS
 
@@ -117,16 +119,17 @@ brew install --cask kidchenko/tap/cafe
 
 Or download [**Cafe.dmg**](https://github.com/kidchenko/cafe/releases/latest/download/Cafe.dmg)
 (Apple silicon and Intel), open it, and drag Cafe into **Applications**. It
-lives in the menu bar with no Dock icon.
+lives in the menu bar and doesn't show up in the Dock.
 
-The build isn't notarized, so Gatekeeper blocks the first launch from the DMG.
-The Homebrew cask clears this for you; otherwise, do it once:
+The app isn't notarized yet, so macOS blocks it the first time you open it.
+Homebrew takes care of that for you. Otherwise, do one of these once:
 
-- **System Settings → Privacy & Security → Open Anyway** next to Cafe; or
-- `xattr -dr com.apple.quarantine /Applications/Cafe.app`
+- Go to **System Settings > Privacy & Security** and click **Open Anyway**
+  next to Cafe.
+- Run `xattr -dr com.apple.quarantine /Applications/Cafe.app`
 
-Move it into Applications *first*: the quarantine flag can't be cleared while
-the app is still on the read-only disk image.
+Move it into Applications before you do this. It won't work while the app is
+still inside the disk image.
 
 ### Requirements
 
@@ -134,9 +137,9 @@ Windows 10 or later. macOS 11 or later.
 
 ## How it works
 
-Cafe never edits your power plan. It asks the OS for a temporary request
-instead, and the OS ends that request as soon as Cafe withdraws it, quits, or
-crashes. There is nothing to restore and nothing to get stuck.
+Cafe never changes your power settings. It asks the OS to stay awake for now,
+and the OS drops that request as soon as Cafe takes it back, quits or crashes.
+So there's nothing to undo, and your computer can't get stuck awake.
 
 | | Awake | Screen on |
 |---|---|---|
@@ -153,23 +156,24 @@ powercfg /requests        # Windows, from an admin prompt: cafe.exe under SYSTEM
 pmset -g assertions       # macOS: an assertion named "Cafe"
 ```
 
-Neither one blocks sleep you ask for yourself: Start → Sleep, the power button,
-or closing a MacBook lid on battery. That is the OS's call, and the right one.
+Neither one stops sleep you ask for yourself, like Start > Sleep, the power
+button, or closing a MacBook lid on battery. Cafe leaves those alone on
+purpose.
 
 Battery state comes from `GetSystemPowerStatus` on Windows and IOKit's power
-source list on macOS. Running apps come from a Toolhelp snapshot on Windows and
-`libproc` on macOS. All of it is read on a timer; nothing hooks into other
-processes, and nothing leaves the machine.
+source list on macOS. The list of running apps comes from a Toolhelp snapshot on
+Windows and `libproc` on macOS. Cafe just reads these every so often. It doesn't
+hook into other programs, and nothing leaves your computer.
 
-The tray and cup icons are drawn in code from signed distance functions
-(`src/icon.rs`), so there are no image assets to keep in sync.
+The icons are drawn in code (`src/icon.rs`). The images in `assets/` and
+`docs/img/` are generated from it with `.\build.ps1 -Icons`.
 
 ## Configuration
 
 `%APPDATA%\Cafe\config.json` on Windows,
-`~/Library/Application Support/Cafe/config.json` on macOS. The menu covers
-everything, but the file is there if you prefer it. Edits are picked up within
-a few seconds; no restart needed.
+`~/Library/Application Support/Cafe/config.json` on macOS. You can do
+everything from the menu, but you can edit the file if you'd rather. Cafe
+notices changes within a few seconds, so there's no need to restart it.
 
 ```json
 {
@@ -188,36 +192,37 @@ a few seconds; no restart needed.
 | `durations` | The "Keep awake for" choices, in minutes. 1 minute to 1 week. |
 | `batteryFloor` | Percent. `0` means never stop. Capped at 95. |
 | `apps` | Process names. Case and `.exe` don't matter. |
-| `mode` | Cafe's own state; edits to it are ignored while Cafe is running. |
+| `mode` | What Cafe is doing right now. Cafe ignores edits to it while it's running. |
 
 ## Troubleshooting
 
-Cafe logs to `cafe.log` next to the config. It records every mode change, every
-watched app starting and stopping, and the battery floor kicking in:
+Cafe writes a log to `cafe.log`, next to the config. It notes every mode
+change, every app on your list opening and closing, and the battery limit
+kicking in:
 
 ```
 INFO  mode=Indefinite trigger=None level=SystemAndScreen
 INFO  obs64 is running
 INFO  battery below 20%: ending Indefinite
-INFO  toast shown: Battery at 19% / Cafe won't keep your PC awake on battery below 20%.
+INFO  toast shown: Battery at 19% / Cafe let go so your PC can sleep and save power.
 ```
 
-**My computer slept anyway.** Check the first line of the menu: it says why Cafe
-is off. Then check `powercfg /requests` or `pmset -g assertions` while it's
-awake. If Cafe is listed there and the machine still sleeps, something asked for
-sleep explicitly (a lid close, a scheduled task, a power button), which Cafe
-doesn't override by design.
+**My computer slept anyway.** Look at the first line of the menu, which says
+why Cafe is off. Then run `powercfg /requests` or `pmset -g assertions` while
+it's awake. If Cafe shows up there and the computer still sleeps, something
+asked for sleep directly, like closing the lid, a scheduled task or the power
+button. Cafe doesn't override those.
 
-**A watched app isn't keeping it awake.** Compare the name in the menu with the
-process name in Task Manager's **Details** tab, or Activity Monitor. The
-**Processes** tab shows a friendly name, which isn't what Cafe matches.
+**An app on my list isn't keeping it awake.** Compare the name in the menu with
+the one in Task Manager's **Details** tab, or in Activity Monitor. The
+**Processes** tab shows a friendlier name, and that's not what Cafe looks for.
 
-**Notifications say "Windows PowerShell".** You're running the portable exe;
-see [Install](#windows). If there's no notification at all, check Focus Assist
+**Notifications say "Windows PowerShell".** You're running the portable exe.
+See [Install](#windows). If you get no notifications at all, check Focus Assist
 or Do Not Disturb.
 
-**Launching Cafe again does nothing visible.** It did something: the second
-launch toggled the running copy, then exited. Look at the cup.
+**Opening Cafe again doesn't seem to do anything.** It did. The second copy
+switched the running one on or off, then quit. Check the cup.
 
 ## Build
 
@@ -240,13 +245,13 @@ choco install innosetup -y     # only for the installer
 ./build.sh --universal --dmg   # what a release ships: arm64 + x86_64, in a .dmg
 ```
 
-Needs only the Rust toolchain. The cup, the menu and the rules are shared Rust;
-only the OS-specific pieces fork (execution state vs IOKit, Toolhelp vs
-libproc, WinRT toasts vs `osascript`).
+All you need is the Rust toolchain. The cup, the menu and the logic are shared.
+Only the OS-specific parts are split: execution state vs IOKit, Toolhelp vs
+libproc, and WinRT toasts vs `osascript`.
 
-`cargo test` covers the rules that don't need a desktop: timers and clock
-labels, the battery floor, app-name matching, config parsing, the facts list,
-and the icon renderer.
+`cargo test` covers everything that doesn't need a desktop: timers and clock
+labels, the battery limit, app-name matching, config parsing, the facts list
+and the icon drawing.
 
 The landing page is [`docs/index.html`](docs/index.html), a single static file
 served by GitHub Pages from `/docs`.
@@ -257,8 +262,8 @@ served by GitHub Pages from `/docs`.
 2. `git tag vX.Y.Z && git push origin vX.Y.Z`
 
 The `release` workflow builds the DMG on macOS and the installer on Windows,
-publishes both to a GitHub Release, and rewrites the Chocolatey, winget and
-Homebrew manifests with the new version and checksums:
+puts both on a GitHub Release, and updates the Chocolatey, winget and Homebrew
+manifests with the new version and checksums:
 
 - **Chocolatey** is pushed automatically when the `CHOCO_API_KEY` secret is set.
 - **winget**: submit the `manifest-winget` artifact to
@@ -267,16 +272,16 @@ Homebrew manifests with the new version and checksums:
 - **Homebrew**: copy the `manifest-homebrew` artifact to `Casks/cafe.rb` in
   `kidchenko/homebrew-tap`.
 
-Running the workflow by hand from the Actions tab is a dry run: everything is
-built and uploaded as artifacts, nothing is published.
+If you run the workflow by hand from the Actions tab, it's a dry run. It builds
+everything and uploads it as artifacts, but doesn't publish anything.
 
 ## Not yet
 
-- **Choose your coffee**: espresso, cappuccino, mocha and more as cup styles,
-  plus a brewing animation while awake ([#1](https://github.com/kidchenko/cafe/issues/1)).
-- **A signed, notarized macOS build**: would drop the Gatekeeper step and let
-  notifications carry Cafe's own name.
-- **Code signing on Windows**: would drop the SmartScreen warning.
+- **Pick your coffee.** Espresso, cappuccino, mocha and more as cup styles,
+  plus a brewing animation while it's awake ([#1](https://github.com/kidchenko/cafe/issues/1)).
+- **A signed, notarized Mac build.** No more Gatekeeper step, and
+  notifications would show up as Cafe.
+- **Code signing on Windows.** No more SmartScreen warning.
 
 ## License
 

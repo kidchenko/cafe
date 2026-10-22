@@ -15,10 +15,10 @@ Description: |-
   A coffee cup in the notification area that keeps Windows from going to sleep,
   like PowerToys Awake without the rest of PowerToys.
 
-  Keep awake indefinitely, for a set time, or until a time of day, optionally
-  with the screen kept on too. Left-click the cup to toggle. Switch it off and
-  your normal power plan applies: Cafe never edits the plan, it only asks
-  Windows not to sleep, and that request ends when Cafe stops.
+  Keep your PC awake for as long as you like, for a set time, until a time of
+  day, or while an app is open, with the screen on too if you want. Left-click
+  the cup to switch it on or off. Cafe never changes your power plan. It just
+  asks Windows not to sleep, and that request goes away when Cafe stops.
 Moniker: cafe
 Tags:
   - awake

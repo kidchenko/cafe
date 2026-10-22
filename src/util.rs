@@ -22,7 +22,7 @@ pub fn humanize(secs: u64) -> String {
     }
 }
 
-/// "30 minutes", "1 hour", "1.5 hours" — for the duration menu.
+/// "30 minutes", "1 hour", "1.5 hours", for the duration menu.
 pub fn duration_label(mins: u32) -> String {
     match mins {
         1 => "1 minute".into(),
