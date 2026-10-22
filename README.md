@@ -56,6 +56,9 @@ The top line says what Cafe is doing right now. Under it:
 | **Notifications** | Lets you know when a timer ends or a low battery stops Cafe. |
 | **Coffee facts** | A coffee fact of the day at the bottom of the menu. [More below.](#coffee-facts) |
 | **Run at login** | Just for your user, no admin needed. On macOS it shows up in System Settings > General > Login Items, and you can turn it off there too. Move Cafe.app to Applications first. |
+| **Edit settings file…** | Opens the config file in a text editor (⌘, on macOS). [More below.](#configuration) |
+
+Under that is the version you're running. **Quit Cafe** is ⌘Q on macOS.
 
 Cafe remembers what it was doing. If you restart in the middle of a timer, the
 timer carries on. If it ran out while Cafe was closed, Cafe starts up off.
@@ -70,7 +73,8 @@ build.
 - **Choose an app…** opens the usual file picker, so you can add an app that
   isn't open yet. You can pick a command-line program like `ffmpeg` or `rsync`
   here too.
-- **Edit app list…** opens the config file, if you'd rather type names in.
+- **Settings > Edit settings file…** opens the config file, if you'd rather
+  type names in.
 - Click an app on the list to remove it.
 
 Behind the scenes Cafe matches on the program's file name and ignores case and
@@ -174,8 +178,11 @@ source list on macOS. The list of running apps comes from a Toolhelp snapshot on
 Windows and `libproc` on macOS. Cafe just reads these every so often. It doesn't
 hook into other programs, and nothing leaves your computer.
 
-The icons are drawn in code (`src/icon.rs`). The images in `assets/` and
-`docs/img/` are generated from it with `.\build.ps1 -Icons`.
+The cup is drawn in code (`src/icon.rs`). The images in `assets/` and
+`docs/img/` are generated from it with `.\build.ps1 -Icons`. The glyphs in the
+menu come from [Lucide](https://lucide.dev) (ISC): `assets/icons/make.sh`
+rasterises them into `assets/icons/glyph/`, and `assets/icons/LICENSES.md` has
+the license.
 
 ## Configuration
 

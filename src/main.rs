@@ -7,6 +7,7 @@
 //! | module            | responsibility                                     |
 //! |-------------------|----------------------------------------------------|
 //! | `awake`           | asks the OS not to sleep (and stops asking)         |
+//! | `art`             | the menu's glyphs, from Lucide                      |
 //! | `config`          | the persisted mode and preferences                  |
 //! | `icon`            | draws the cup                                       |
 //! | `power`           | battery level, for the stop-on-battery floor        |
@@ -18,6 +19,7 @@
 //! | `autostart`       | run at login                                        |
 
 mod app;
+mod art;
 mod autostart;
 mod awake;
 mod config;

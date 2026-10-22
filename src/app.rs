@@ -19,11 +19,14 @@ use crate::power::{self, Battery};
 use crate::util::{
     duration_label, humanize, local_clock_at, local_seconds_of_day, next_whole_hours, now_unix,
 };
-use crate::{autostart, facts, notify, picker, procs, theme};
+use crate::{art, autostart, facts, notify, picker, procs, theme};
 
 use std::time::{Duration, Instant, SystemTime};
 use tao::event_loop::EventLoopProxy;
-use tray_icon::menu::{CheckMenuItem, Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
+use tray_icon::menu::accelerator::Accelerator;
+use tray_icon::menu::{
+    CheckMenuItem, IconMenuItem, Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu,
+};
 use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
 
 /// "Keep awake" when off, "Turn off" otherwise: the same switch as a left
@@ -561,12 +564,12 @@ impl App {
 
         // Actions first, then the one setting people flip often, then the
         // rest out of the way under Settings.
-        let toggle = if self.cfg.mode == Mode::Off {
-            "Keep awake"
+        let (toggle, glyph) = if self.cfg.mode == Mode::Off {
+            ("Keep awake", "coffee")
         } else {
-            "Turn off"
+            ("Turn off", "circle-stop")
         };
-        let _ = menu.append(&MenuItem::with_id(ID_TOGGLE, toggle, true, None));
+        let _ = menu.append(&icon_item(ID_TOGGLE, toggle, glyph, None));
         let _ = menu.append(&self.timer_menu(sod));
         let _ = menu.append(&self.apps_menu());
 
@@ -581,9 +584,9 @@ impl App {
         let _ = menu.append(&self.settings_menu());
         let _ = menu.append(&PredefinedMenuItem::separator());
         if self.cfg.facts {
-            let _ = menu.append(&MenuItem::with_id(ID_FACT, self.fact(), true, None));
+            let _ = menu.append(&icon_item(ID_FACT, self.fact(), "lightbulb", None));
         }
-        let _ = menu.append(&MenuItem::with_id(ID_QUIT, "Quit Cafe", true, None));
+        let _ = menu.append(&icon_item(ID_QUIT, "Quit Cafe", "power", shortcut('q')));
 
         self.tray.set_menu(Some(Box::new(menu)));
     }
@@ -591,7 +594,7 @@ impl App {
     /// Durations, then the next few whole hours. The status line at the top
     /// already says when a running timer ends.
     fn timer_menu(&self, sod: u64) -> Submenu {
-        let sub = Submenu::new("Timer", true);
+        let sub = icon_submenu("Timer", "timer", true);
         for &mins in &self.cfg.durations {
             let _ = sub.append(&MenuItem::with_id(
                 format!("{ID_FOR}{mins}"),
@@ -614,7 +617,7 @@ impl App {
 
     /// Things set once and left alone.
     fn settings_menu(&self) -> Submenu {
-        let sub = Submenu::new("Settings", true);
+        let sub = icon_submenu("Settings", "settings", true);
         let _ = sub.append(&self.battery_menu());
         let _ = sub.append(&CheckMenuItem::with_id(
             ID_NOTIFY,
@@ -637,14 +640,28 @@ impl App {
             autostart::is_enabled(),
             None,
         ));
+        let _ = sub.append(&PredefinedMenuItem::separator());
+        let _ = sub.append(&icon_item(
+            ID_EDIT,
+            "Edit settings file\u{2026}",
+            "file-cog",
+            shortcut(','),
+        ));
+        let _ = sub.append(&PredefinedMenuItem::separator());
+        let _ = sub.append(&MenuItem::with_id(
+            ID_INERT,
+            concat!("Cafe ", env!("CARGO_PKG_VERSION")),
+            false,
+            None,
+        ));
         sub
     }
 
     /// Watched apps (checked; clicking one removes it), then the windowed apps
-    /// that could be added, then a way out to the config for anything without a
-    /// window, like a build tool or ffmpeg.
+    /// that could be added, then the file picker for anything else, like an
+    /// app that isn't open or a build tool.
     fn apps_menu(&self) -> Submenu {
-        let sub = Submenu::new("While an app is open", true);
+        let sub = icon_submenu("While an app is open", "app-window", true);
         if self.cfg.apps.is_empty() {
             let _ = sub.append(&MenuItem::with_id(ID_INERT, "No apps yet", false, None));
         }
@@ -676,16 +693,10 @@ impl App {
             ));
         }
         let _ = sub.append(&add);
-        let _ = sub.append(&MenuItem::with_id(
+        let _ = sub.append(&icon_item(
             ID_CHOOSE,
             "Choose an app\u{2026}",
-            true,
-            None,
-        ));
-        let _ = sub.append(&MenuItem::with_id(
-            ID_EDIT,
-            "Edit app list\u{2026}",
-            true,
+            "folder-open",
             None,
         ));
         sub
@@ -697,7 +708,7 @@ impl App {
             Some(b) => format!("Stop on battery below ({}% now)", b.percent),
             None => "Stop on battery below".to_string(),
         };
-        let sub = Submenu::new(title, has_battery);
+        let sub = icon_submenu(title, "battery-low", has_battery);
         for floor in FLOORS {
             let label = if floor == 0 {
                 "Never".to_string()
@@ -731,6 +742,40 @@ fn menu_is_open() -> bool {
 #[cfg(windows)]
 fn menu_is_open() -> bool {
     false
+}
+
+/// A menu row with a Lucide glyph beside it.
+fn icon_item(id: &str, text: &str, glyph: &str, accel: Option<Accelerator>) -> IconMenuItem {
+    let item = IconMenuItem::with_id(id, text, true, None, accel);
+    #[cfg(target_os = "macos")]
+    item.set_icon_templated(art::glyph(glyph));
+    #[cfg(windows)]
+    item.set_icon(art::glyph(glyph));
+    item
+}
+
+/// A submenu with a Lucide glyph beside it.
+fn icon_submenu(text: impl AsRef<str>, glyph: &str, enabled: bool) -> Submenu {
+    let sub = Submenu::new(text, enabled);
+    #[cfg(target_os = "macos")]
+    sub.set_icon_templated(art::glyph(glyph));
+    #[cfg(windows)]
+    sub.set_icon(art::glyph(glyph));
+    sub
+}
+
+/// ⌘ and a key, on macOS. Windows tray menus can't take keyboard shortcuts.
+fn shortcut(key: char) -> Option<Accelerator> {
+    if !cfg!(target_os = "macos") {
+        return None;
+    }
+    use tray_icon::menu::accelerator::{Code, Modifiers};
+    let code = match key {
+        'q' => Code::KeyQ,
+        ',' => Code::Comma,
+        _ => return None,
+    };
+    Some(Accelerator::new(Modifiers::META, code))
 }
 
 fn parse(id: &str, prefix: &str) -> Option<u64> {
