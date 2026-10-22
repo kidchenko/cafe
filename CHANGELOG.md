@@ -12,6 +12,11 @@
 - Coffee facts. A new one in the menu every day, plus at most one notification
   a day when you turn Cafe on. Turn them off with "Coffee facts".
 - Landing page in `docs/`.
+- Picking apps to watch is easier. The list shows apps by their real names
+  (OBS Studio, not obs64), leaves out background helpers, and **Choose an
+  app…** adds one that isn't open yet, or a command-line program.
+- A shorter menu. "Off" and "Keep awake" are one switch, the two timer menus
+  are one **Timer** menu, and the preferences live under **Settings**.
 
 ## [0.0.1] - 2026-10-20
 

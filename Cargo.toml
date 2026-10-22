@@ -29,11 +29,13 @@ version  = "0.62"
 features = [
     "Win32_Foundation",
     "Win32_Security",
+    "Win32_Storage_FileSystem",
     "Win32_System_Diagnostics_ToolHelp",
     "Win32_System_Power",
     "Win32_System_Registry",
     "Win32_System_SystemInformation",
     "Win32_System_Threading",
+    "Win32_UI_Controls_Dialogs",
     "Win32_UI_WindowsAndMessaging",
 ]
 
@@ -45,11 +47,13 @@ winresource = "0.1"
 # ---------------------------------------------------------------------------
 # The power assertion itself is plain IOKit/CoreFoundation FFI (see awake.rs).
 # `libc` is for localtime_r in the log stamp. objc2 is already in the tree via
-# tao and tray-icon; ServiceManagement is for run-at-login (see autostart.rs).
+# tao and tray-icon; ServiceManagement is for run-at-login (see autostart.rs),
+# and AppKit for the running apps and the app picker (procs.rs, picker.rs).
 [target.'cfg(target_os = "macos")'.dependencies]
 libc                     = "0.2"
 objc2                    = "0.6"
-objc2-foundation         = { version = "0.3", default-features = false, features = ["std", "NSError", "NSString"] }
+objc2-app-kit            = { version = "0.3", default-features = false, features = ["std", "NSApplication", "NSOpenPanel", "NSPanel", "NSResponder", "NSRunningApplication", "NSSavePanel", "NSWindow", "NSWorkspace"] }
+objc2-foundation         = { version = "0.3", default-features = false, features = ["std", "NSArray", "NSBundle", "NSError", "NSFileManager", "NSString", "NSURL"] }
 objc2-service-management = { version = "0.3", default-features = false, features = ["std", "SMAppService", "objc2", "objc2-foundation"] }
 
 [profile.release]

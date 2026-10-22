@@ -19,19 +19,21 @@ use crate::power::{self, Battery};
 use crate::util::{
     duration_label, humanize, local_clock_at, local_seconds_of_day, next_whole_hours, now_unix,
 };
-use crate::{autostart, facts, notify, procs, theme};
+use crate::{autostart, facts, notify, picker, procs, theme};
 
 use std::time::{Duration, Instant, SystemTime};
 use tao::event_loop::EventLoopProxy;
 use tray_icon::menu::{CheckMenuItem, Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
 use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
 
-const ID_OFF: &str = "off";
-const ID_INDEFINITE: &str = "indefinite";
+/// "Keep awake" when off, "Turn off" otherwise: the same switch as a left
+/// click on Windows or a second launch.
+const ID_TOGGLE: &str = "toggle";
 const ID_FOR: &str = "for:";
 const ID_UNTIL: &str = "until:";
 const ID_APP_ADD: &str = "app+:";
 const ID_APP_REMOVE: &str = "app-:";
+const ID_CHOOSE: &str = "choose-app";
 const ID_EDIT: &str = "edit-config";
 const ID_FLOOR: &str = "floor:";
 const ID_SCREEN: &str = "screen";
@@ -51,8 +53,8 @@ const TICK: Duration = Duration::from_secs(30);
 /// process snapshot is a few hundred microseconds; this is still nothing.
 const TICK_WATCHING: Duration = Duration::from_secs(10);
 
-/// How many whole hours "Keep awake until" offers.
-const UNTIL_CHOICES: u32 = 8;
+/// How many whole hours the timer offers after its durations.
+const UNTIL_CHOICES: u32 = 6;
 const FLOORS: [u8; 5] = [0, 10, 20, 30, 50];
 
 const MACHINE: &str = if cfg!(target_os = "macos") {
@@ -96,7 +98,7 @@ pub struct App {
     face: Face,
     header: String,
     menu_hour: u64,
-    windowed: Vec<String>,
+    windowed: Vec<procs::App>,
 
     /// The config file's mtime as of our last read or write: anything newer is
     /// a hand edit.
@@ -170,8 +172,7 @@ impl App {
                 linfo!("quit requested from the tray");
                 return Flow::Exit;
             }
-            ID_OFF => self.set_mode(Mode::Off),
-            ID_INDEFINITE => self.set_mode(Mode::Indefinite),
+            ID_TOGGLE => return self.handle(UserEvent::Toggle),
             ID_SCREEN => {
                 self.cfg.keep_screen_on = !self.cfg.keep_screen_on;
                 self.apply(true);
@@ -189,6 +190,11 @@ impl App {
                 self.rebuild_menu();
             }
             ID_EDIT => open_config(),
+            ID_CHOOSE => {
+                if let Some(app) = picker::choose_app() {
+                    self.watch(&app);
+                }
+            }
             ID_FACTS => {
                 self.cfg.facts = !self.cfg.facts;
                 self.apply(true);
@@ -215,14 +221,13 @@ impl App {
                     self.low_announced = false;
                     self.observe();
                     self.apply(true);
-                } else if let Some(name) = other.strip_prefix(ID_APP_ADD) {
-                    linfo!("watching {name}");
-                    self.cfg.apps.push(name.to_string());
-                    self.observe();
-                    self.apply(true);
-                } else if let Some(name) = other.strip_prefix(ID_APP_REMOVE) {
-                    linfo!("no longer watching {name}");
-                    self.cfg.apps.retain(|a| a != name);
+                } else if let Some(exe) = other.strip_prefix(ID_APP_ADD) {
+                    if let Some(app) = self.windowed.iter().find(|a| a.exe == exe).cloned() {
+                        self.watch(&app);
+                    }
+                } else if let Some(exe) = other.strip_prefix(ID_APP_REMOVE) {
+                    linfo!("no longer watching {exe}");
+                    self.cfg.unwatch(exe);
                     self.observe();
                     self.apply(true);
                 }
@@ -468,7 +473,9 @@ impl App {
         };
         match (self.cfg.mode, &self.trigger) {
             (Mode::Off, None) => format!("Off, your {MACHINE} sleeps as usual"),
-            (Mode::Off, Some(app)) => format!("Awake while {app} is open{screen}"),
+            (Mode::Off, Some(app)) => {
+                format!("Awake while {} is open{screen}", self.cfg.app_label(app))
+            }
             (Mode::Indefinite, _) => format!("Awake{screen}"),
             (Mode::Until { at }, _) => format!(
                 "Awake until {} ({} left){screen}",
@@ -478,12 +485,19 @@ impl App {
         }
     }
 
+    fn watch(&mut self, app: &procs::App) {
+        linfo!("watching {} ({})", app.exe, app.name);
+        self.cfg.watch(app);
+        self.observe();
+        self.apply(true);
+    }
+
     /// Windowed apps not already on the watch list.
-    fn add_candidates(&self) -> Vec<String> {
+    fn add_candidates(&self) -> Vec<procs::App> {
         let watched: Vec<String> = self.cfg.apps.iter().map(|a| procs::normalise(a)).collect();
         procs::windowed()
             .into_iter()
-            .filter(|n| !watched.contains(&procs::normalise(n)))
+            .filter(|a| !watched.contains(&procs::normalise(&a.exe)))
             .collect()
     }
 
@@ -500,51 +514,15 @@ impl App {
         let _ = menu.append(&MenuItem::with_id(ID_INERT, &self.header, false, None));
         let _ = menu.append(&PredefinedMenuItem::separator());
 
-        let mode = self.cfg.mode;
-        let _ = menu.append(&CheckMenuItem::with_id(
-            ID_OFF,
-            "Off",
-            true,
-            mode == Mode::Off,
-            None,
-        ));
-        let _ = menu.append(&CheckMenuItem::with_id(
-            ID_INDEFINITE,
-            "Keep awake",
-            true,
-            mode == Mode::Indefinite,
-            None,
-        ));
-
-        let durations = Submenu::new("Keep awake for", true);
-        // A check on the submenu itself would be ideal but is not something
-        // menus offer; a check item inside it says "you are on a timer".
-        if matches!(mode, Mode::Until { .. }) {
-            let _ = durations.append_items(&[
-                &CheckMenuItem::with_id(ID_INERT, "Timer running", false, true, None),
-                &PredefinedMenuItem::separator(),
-            ]);
-        }
-        for &mins in &self.cfg.durations {
-            let _ = durations.append(&MenuItem::with_id(
-                format!("{ID_FOR}{mins}"),
-                duration_label(mins),
-                true,
-                None,
-            ));
-        }
-        let _ = menu.append(&durations);
-
-        let until = Submenu::new("Keep awake until", true);
-        for (at, label) in next_whole_hours(now_unix(), sod, UNTIL_CHOICES) {
-            let _ = until.append(&MenuItem::with_id(
-                format!("{ID_UNTIL}{at}"),
-                label,
-                true,
-                None,
-            ));
-        }
-        let _ = menu.append(&until);
+        // Actions first, then the one setting people flip often, then the
+        // rest out of the way under Settings.
+        let toggle = if self.cfg.mode == Mode::Off {
+            "Keep awake"
+        } else {
+            "Turn off"
+        };
+        let _ = menu.append(&MenuItem::with_id(ID_TOGGLE, toggle, true, None));
+        let _ = menu.append(&self.timer_menu(sod));
         let _ = menu.append(&self.apps_menu());
 
         let _ = menu.append(&PredefinedMenuItem::separator());
@@ -555,52 +533,83 @@ impl App {
             self.cfg.keep_screen_on,
             None,
         ));
-        let _ = menu.append(&self.battery_menu());
-        let _ = menu.append(&CheckMenuItem::with_id(
-            ID_NOTIFY,
-            "Notifications",
-            true,
-            self.cfg.notify,
-            None,
-        ));
-        let _ = menu.append(&CheckMenuItem::with_id(
-            ID_FACTS,
-            "Coffee facts",
-            true,
-            self.cfg.facts,
-            None,
-        ));
-        let _ = menu.append(&CheckMenuItem::with_id(
-            ID_AUTOSTART,
-            "Run at login",
-            true,
-            autostart::is_enabled(),
-            None,
-        ));
+        let _ = menu.append(&self.settings_menu());
         let _ = menu.append(&PredefinedMenuItem::separator());
         if self.cfg.facts {
             let _ = menu.append(&MenuItem::with_id(ID_FACT, self.fact(), true, None));
-            let _ = menu.append(&PredefinedMenuItem::separator());
         }
         let _ = menu.append(&MenuItem::with_id(ID_QUIT, "Quit Cafe", true, None));
 
         self.tray.set_menu(Some(Box::new(menu)));
     }
 
+    /// Durations, then the next few whole hours. The status line at the top
+    /// already says when a running timer ends.
+    fn timer_menu(&self, sod: u64) -> Submenu {
+        let sub = Submenu::new("Timer", true);
+        for &mins in &self.cfg.durations {
+            let _ = sub.append(&MenuItem::with_id(
+                format!("{ID_FOR}{mins}"),
+                duration_label(mins),
+                true,
+                None,
+            ));
+        }
+        let _ = sub.append(&PredefinedMenuItem::separator());
+        for (at, label) in next_whole_hours(now_unix(), sod, UNTIL_CHOICES) {
+            let _ = sub.append(&MenuItem::with_id(
+                format!("{ID_UNTIL}{at}"),
+                format!("Until {label}"),
+                true,
+                None,
+            ));
+        }
+        sub
+    }
+
+    /// Things set once and left alone.
+    fn settings_menu(&self) -> Submenu {
+        let sub = Submenu::new("Settings", true);
+        let _ = sub.append(&self.battery_menu());
+        let _ = sub.append(&CheckMenuItem::with_id(
+            ID_NOTIFY,
+            "Notifications",
+            true,
+            self.cfg.notify,
+            None,
+        ));
+        let _ = sub.append(&CheckMenuItem::with_id(
+            ID_FACTS,
+            "Coffee facts",
+            true,
+            self.cfg.facts,
+            None,
+        ));
+        let _ = sub.append(&CheckMenuItem::with_id(
+            ID_AUTOSTART,
+            "Run at login",
+            true,
+            autostart::is_enabled(),
+            None,
+        ));
+        sub
+    }
+
     /// Watched apps (checked; clicking one removes it), then the windowed apps
     /// that could be added, then a way out to the config for anything without a
     /// window, like a build tool or ffmpeg.
     fn apps_menu(&self) -> Submenu {
-        let sub = Submenu::new("Keep awake while an app is open", true);
+        let sub = Submenu::new("While an app is open", true);
         if self.cfg.apps.is_empty() {
             let _ = sub.append(&MenuItem::with_id(ID_INERT, "No apps yet", false, None));
         }
         for app in &self.cfg.apps {
             let running = self.trigger.as_deref() == Some(app.as_str());
+            let name = self.cfg.app_label(app);
             let label = if running {
-                format!("{app} (open now)")
+                format!("{name} (open now)")
             } else {
-                app.clone()
+                name
             };
             let _ = sub.append(&CheckMenuItem::with_id(
                 format!("{ID_APP_REMOVE}{app}"),
@@ -613,15 +622,21 @@ impl App {
         let _ = sub.append(&PredefinedMenuItem::separator());
 
         let add = Submenu::new("Add an open app", !self.windowed.is_empty());
-        for name in &self.windowed {
+        for app in &self.windowed {
             let _ = add.append(&MenuItem::with_id(
-                format!("{ID_APP_ADD}{name}"),
-                name,
+                format!("{ID_APP_ADD}{}", app.exe),
+                &app.name,
                 true,
                 None,
             ));
         }
         let _ = sub.append(&add);
+        let _ = sub.append(&MenuItem::with_id(
+            ID_CHOOSE,
+            "Choose an app\u{2026}",
+            true,
+            None,
+        ));
         let _ = sub.append(&MenuItem::with_id(
             ID_EDIT,
             "Edit app list\u{2026}",

@@ -8,6 +8,7 @@
 
 use crate::log::{lerror, linfo};
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Debug)]
@@ -37,6 +38,10 @@ pub struct Config {
     /// Matched case-insensitively against the executable name, with or without
     /// `.exe`.
     pub apps: Vec<String>,
+    /// What to call each app in the menu, keyed by normalised executable
+    /// name: "obs64" -> "OBS Studio". Filled in when an app is added from the
+    /// menu; an app without an entry is shown by its executable name.
+    pub app_names: BTreeMap<String, String>,
     /// Notify when a timed session ends or the battery floor stops Cafe.
     pub notify: bool,
     /// Coffee facts: one in the menu, and at most one notification a day.
@@ -56,6 +61,7 @@ impl Default for Config {
             // one failure this app can cause rather than prevent.
             battery_floor: 20,
             apps: Vec::new(),
+            app_names: BTreeMap::new(),
             notify: true,
             facts: true,
             last_fact_day: 0,
@@ -76,6 +82,30 @@ impl Config {
 
     pub fn path() -> Option<PathBuf> {
         Self::dir().map(|d| d.join("config.json"))
+    }
+
+    /// The menu's name for a watched app.
+    pub fn app_label(&self, exe: &str) -> String {
+        self.app_names
+            .get(&crate::procs::normalise(exe))
+            .cloned()
+            .unwrap_or_else(|| exe.to_string())
+    }
+
+    /// Watch an app, remembering its display name. Adding one already on the
+    /// list only refreshes the name.
+    pub fn watch(&mut self, app: &crate::procs::App) {
+        let key = crate::procs::normalise(&app.exe);
+        if !self.apps.iter().any(|a| crate::procs::normalise(a) == key) {
+            self.apps.push(app.exe.clone());
+        }
+        self.app_names.insert(key, app.name.clone());
+    }
+
+    /// Stop watching an app, as written in `apps`.
+    pub fn unwatch(&mut self, exe: &str) {
+        self.apps.retain(|a| a != exe);
+        self.app_names.remove(&crate::procs::normalise(exe));
     }
 
     /// Last-modified time of the file, to notice a hand edit cheaply.
@@ -195,6 +225,30 @@ mod tests {
         .unwrap();
         assert_eq!(c.apps, vec!["OBS64.exe", "ffmpeg"]);
         assert_eq!(c.battery_floor, 95);
+    }
+
+    #[test]
+    fn watch_names_apps_and_unwatch_forgets_them() {
+        let mut c = Config::default();
+        let obs = crate::procs::App {
+            name: "OBS Studio".into(),
+            exe: "obs64".into(),
+        };
+        c.watch(&obs);
+        c.watch(&crate::procs::App {
+            name: "OBS".into(),
+            exe: "OBS64.exe".into(),
+        });
+        assert_eq!(c.apps, vec!["obs64"], "same app, not added twice");
+        assert_eq!(c.app_label("OBS64.EXE"), "OBS", "name refreshed");
+        assert_eq!(c.app_label("ffmpeg"), "ffmpeg", "unnamed shows as is");
+        c.unwatch("obs64");
+        assert!(c.apps.is_empty() && c.app_names.is_empty());
+        // Older configs have no appNames at all.
+        assert!(Config::parse(r#"{"apps": ["obs64"]}"#)
+            .unwrap()
+            .app_names
+            .is_empty());
     }
 
     #[test]

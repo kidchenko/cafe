@@ -37,17 +37,22 @@ too.
 
 ## The menu
 
+The top line says what Cafe is doing right now. Under it:
+
 | | |
 |---|---|
-| **Off** | Your computer goes back to its own sleep settings. |
-| **Keep awake** | Stays awake until you turn it off. |
-| **Keep awake for** | 15 min, 30 min, 1 h, 2 h, 4 h or 8 h, then it turns itself off. The menu and the tooltip show how long is left. |
-| **Keep awake until** | Pick a time from the next eight hours (17:00, 18:00 and so on). |
-| **Keep awake while an app is open** | Stays awake whenever an app on your list is running. [More below.](#keep-awake-while-an-app-is-open) |
+| **Keep awake** | Stays awake until you turn it off. While Cafe is on, this reads **Turn off**. |
+| **Timer** | 15 min, 30 min, 1 h, 2 h, 4 h or 8 h, or until one of the next six whole hours (17:00, 18:00 and so on). Then it turns itself off. The menu and the tooltip show how long is left. |
+| **While an app is open** | Stays awake whenever an app on your list is running. [More below.](#keep-awake-while-an-app-is-open) |
 | **Keep screen on** | Keeps the display on too. |
+
+**Settings** holds the things you set once:
+
+| | |
+|---|---|
 | **Stop on battery below** | Never, 10%, 20%, 30% or 50%. The default is 20%. [More below.](#battery) |
 | **Notifications** | Lets you know when a timer ends or a low battery stops Cafe. |
-| **Coffee facts** | A coffee fact of the day in the menu. [More below.](#coffee-facts) |
+| **Coffee facts** | A coffee fact of the day at the bottom of the menu. [More below.](#coffee-facts) |
 | **Run at login** | Just for your user, no admin needed. On macOS it shows up in System Settings > General > Login Items, and you can turn it off there too. Move Cafe.app to Applications first. |
 
 Cafe remembers what it was doing. If you restart in the middle of a timer, the
@@ -58,14 +63,16 @@ timer carries on. If it ran out while Cafe was closed, Cafe starts up off.
 Handy for things you'd forget to babysit: OBS, a game, a video call, a long
 build.
 
-- **Add an open app** lists the apps that have a window open right now. Pick
-  one to add it.
-- **Edit app list…** opens the config file. Use it for things that don't have a
-  window, like `ffmpeg`, `cargo` or `rsync`.
+- **Add an open app** lists the apps you have open right now, by the names you
+  know them by (OBS Studio, Visual Studio Code). Pick one to add it.
+- **Choose an app…** opens the usual file picker, so you can add an app that
+  isn't open yet. You can pick a command-line program like `ffmpeg` or `rsync`
+  here too.
+- **Edit app list…** opens the config file, if you'd rather type names in.
 - Click an app on the list to remove it.
 
-Cafe matches on the program's file name and ignores case and `.exe`, so
-`OBS64.exe` and `obs64` count as the same app. While the list has anything on
+Behind the scenes Cafe matches on the program's file name and ignores case and
+`.exe`, so `OBS64.exe` and `obs64` count as the same app. While the list has anything on
 it, Cafe checks every 10 seconds, and the top of the menu tells you which app
 is keeping it awake.
 
@@ -81,7 +88,7 @@ overnight.
 
 ### Coffee facts
 
-There's a new fact near the bottom of the menu every day, like where coffee
+There's a new fact at the bottom of the menu every day, like where coffee
 comes from, what a cortado is, or why it's called mocha. Click it to see the
 next one. The first time you turn Cafe on each day, you also get one as a
 notification. That's the only one you'll get that day.
@@ -182,6 +189,7 @@ notices changes within a few seconds, so there's no need to restart it.
   "durations": [15, 30, 60, 120, 240, 480],
   "batteryFloor": 20,
   "apps": ["obs64", "ffmpeg"],
+  "appNames": { "obs64": "OBS Studio" },
   "notify": true,
   "facts": true
 }
@@ -189,9 +197,10 @@ notices changes within a few seconds, so there's no need to restart it.
 
 | Key | |
 |---|---|
-| `durations` | The "Keep awake for" choices, in minutes. 1 minute to 1 week. |
+| `durations` | The **Timer** choices, in minutes. 1 minute to 1 week. |
 | `batteryFloor` | Percent. `0` means never stop. Capped at 95. |
 | `apps` | Process names. Case and `.exe` don't matter. |
+| `appNames` | What the menu calls each app, keyed by process name. Filled in for you when you add an app from the menu. |
 | `mode` | What Cafe is doing right now. Cafe ignores edits to it while it's running. |
 
 ## Troubleshooting

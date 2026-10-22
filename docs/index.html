@@ -199,20 +199,14 @@
   <div class="menu" role="menu" id="menu">
     <div class="row head"><span></span><span id="status">Off, your computer sleeps as usual</span><span></span></div>
     <div class="sep"></div>
-    <button class="row on" data-mode="off" role="menuitemradio"><span class="chk">✓</span><span>Off</span><span></span></button>
-    <button class="row" data-mode="on" role="menuitemradio"><span class="chk">✓</span><span>Keep awake</span><span></span></button>
-    <button class="row" data-mode="for" role="menuitem"><span class="chk">✓</span><span>Keep awake for</span><span class="arrow">›</span></button>
-    <button class="row" data-mode="until" role="menuitem"><span class="chk">✓</span><span>Keep awake until</span><span class="arrow">›</span></button>
-    <button class="row" data-mode="app" role="menuitem"><span class="chk">✓</span><span>Keep awake while an app is open</span><span class="arrow">›</span></button>
+    <button class="row" data-toggle="awake" role="menuitem"><span></span><span id="toggle">Keep awake</span><span></span></button>
+    <button class="row" data-mode="for" role="menuitem"><span></span><span>Timer</span><span class="arrow">›</span></button>
+    <button class="row" data-mode="app" role="menuitem"><span></span><span>While an app is open</span><span class="arrow">›</span></button>
     <div class="sep"></div>
     <button class="row on" data-toggle="screen" role="menuitemcheckbox"><span class="chk">✓</span><span>Keep screen on</span><span></span></button>
-    <div class="row"><span></span><span>Stop on battery below</span><span class="arrow">20% ›</span></div>
-    <div class="row on"><span class="chk">✓</span><span>Notifications</span><span></span></div>
-    <div class="row on"><span class="chk">✓</span><span>Coffee facts</span><span></span></div>
-    <div class="row on"><span class="chk">✓</span><span>Run at login</span><span></span></div>
+    <div class="row"><span></span><span>Settings</span><span class="arrow">›</span></div>
     <div class="sep"></div>
     <button class="row" data-fact role="menuitem"><span></span><span id="fact">Brazil is the world's largest coffee producer and exporter.</span><span></span></button>
-    <div class="sep"></div>
     <div class="row"><span></span><span>Quit Cafe</span><span></span></div>
   </div>
   <div class="taskbar" aria-hidden="true">
@@ -298,24 +292,17 @@
     ];
     var now = new Date();
     function hhmm(d) { return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
-    function left(ms) { var m = Math.ceil(ms / 60000); return Math.floor(m / 60) + "h " + String(m % 60).padStart(2, "0") + "m"; }
     var inHour = new Date(now.getTime() + 3600000);
-    // "Until" picks the second whole hour from now, like the menu's 2nd entry.
-    var atHour = new Date(now); atHour.setHours(now.getHours() + 2, 0, 0, 0);
     var labels = {
       off: function () { return "Off, your computer sleeps as usual"; },
       on: function (s) { return "Awake" + s; },
       for: function (s) { return "Awake until " + hhmm(inHour) + " (1h 00m left)" + s; },
-      until: function (s) { return "Awake until " + hhmm(atHour) + " (" + left(atHour - now) + " left)" + s; },
       app: function (s) { return "Awake while OBS is open" + s; }
     };
     function paint() {
       var s = state.screen ? ", screen on" : "";
       status.textContent = labels[state.mode](s);
-      menu.querySelectorAll("[data-mode]").forEach(function (b) {
-        var on = b.dataset.mode === state.mode && (state.mode === "off" || state.mode === "on");
-        b.classList.toggle("on", on);
-      });
+      document.getElementById("toggle").textContent = state.mode === "off" ? "Keep awake" : "Turn off";
       menu.querySelector('[data-toggle="screen"]').classList.toggle("on", state.screen);
       cup.src = state.mode === "off" ? "img/cup-off.png" : state.screen ? "img/cup-screen.png" : "img/cup-awake.png";
     }
@@ -323,6 +310,7 @@
       var b = e.target.closest("button");
       if (!b) return;
       if (b.dataset.mode) state.mode = b.dataset.mode;
+      if (b.dataset.toggle === "awake") state.mode = state.mode === "off" ? "on" : "off";
       if (b.dataset.toggle === "screen") state.screen = !state.screen;
       if (b.hasAttribute("data-fact")) {
         factIndex = (factIndex + 1) % facts.length;

@@ -10,7 +10,8 @@
 //! | `config`          | the persisted mode and preferences                  |
 //! | `icon`            | draws the cup                                       |
 //! | `power`           | battery level, for the stop-on-battery floor        |
-//! | `procs`           | running apps, for keep-awake-while-app-runs         |
+//! | `procs`           | running apps, for keep-awake-while-an-app-is-open   |
+//! | `picker`          | the "Choose an app…" file dialog                    |
 //! | `notify`          | notifications when Cafe stops on its own            |
 //! | `app`             | the tray icon, its menu, and the timer              |
 //! | `single_instance` | one copy at a time; relaunching toggles             |
@@ -24,6 +25,7 @@ mod facts;
 mod icon;
 mod log;
 mod notify;
+mod picker;
 mod power;
 mod procs;
 mod single_instance;
