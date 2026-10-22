@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.2] - 2026-10-22
+
+- Fixed: on macOS 26, the menu bar menu closed the first time you hovered over
+  or clicked a submenu after launching Cafe.
+- Fixed: while a timer was running, an open menu could close when the minute
+  changed. The countdown now updates in place.
+
 ## [0.0.1] - 2026-10-22
 
 First release.

@@ -1,6 +1,6 @@
 [package]
 name         = "cafe"
-version      = "0.0.1"
+version      = "0.0.2"
 edition      = "2021"
 rust-version = "1.77"
 description  = "Keep your Mac or PC awake, from the tray"
