@@ -107,13 +107,11 @@ a legend, the fact says so.
 ### Windows
 
 ```powershell
-winget install kidchenko.Cafe
-# or
-choco install cafe
-# or
 scoop bucket add kidchenko https://github.com/kidchenko/scoop-bucket
 scoop install kidchenko/cafe
 ```
+
+winget and Chocolatey packages are on the way.
 
 Or grab [**Cafe-Setup.exe**](https://github.com/kidchenko/cafe/releases/latest/download/Cafe-Setup.exe)
 directly. Each release also ships a portable `cafe-x.y.z-x64.exe` that runs
