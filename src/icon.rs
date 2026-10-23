@@ -32,8 +32,12 @@ type Rgb = [f32; 3];
 /// A premultiplied RGBA sample.
 type Rgba = [f32; 4];
 
-/// The tray glyph's design grid: 16 units across, centred on the origin.
-const TRAY_GRID: f32 = 16.0;
+/// The tray glyph's design grid: 17.5 units across, centred on the origin, so
+/// a unit is about 1.8 px. Café sits beside Sua Vez, Porta and Cota in the menu
+/// bar and they share one keyline: centred, matched by height rather than by
+/// box (a cup is wide and short, so boxed to its neighbours' size it looks a
+/// size smaller), with a 2.4 px stroke.
+const TRAY_GRID: f32 = 17.5;
 
 /// How the tray glyph is coloured.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -73,25 +77,31 @@ fn paint(face: Face, ink: Ink, edge: u32) -> Vec<u8> {
 /// One sample of the tray glyph, in design units.
 fn tray(face: Face, x: f32, y: f32, px: f32, fg: Rgb, fill: Rgb) -> Rgba {
     // The handle pushes the drawing's bounds right of the cup; this centres
-    // the whole thing rather than the cup alone.
-    let x = x + 1.0;
+    // the whole thing rather than the cup alone. Vertically it centres the cup
+    // and saucer, not the steam: the cup must not jump between faces, and
+    // without steam a cup sitting low reads as misaligned beside its
+    // neighbours.
+    let x = x + 0.45;
+    let y = y + 1.8;
     let body = cup(x, y, -1.6, 5.4, 5.0, 3.7, 1.6);
-    let handle = (len(x - 5.0, y - 1.2) - 1.9).abs() - 0.8;
+    let handle = (len(x - 5.0, y - 1.2) - 1.9).abs() - 0.66;
     let handle = if x > 4.4 { handle } else { f32::MAX };
-    let saucer = capsule(x, y, (-6.4, 7.0), (6.4, 7.0), 0.8);
+    let saucer = capsule(x, y, (-6.4, 7.0), (6.4, 7.0), 0.66);
 
     let mut out = [0.0; 4];
     match face {
         Face::Off => {
-            let d = (body.abs() - 0.8).min(handle).min(saucer);
+            let d = (body.abs() - 0.66).min(handle).min(saucer);
             over(&mut out, fg, cover(d, px));
         }
         Face::Awake | Face::AwakeScreen => {
             over(&mut out, fill, cover(body, px));
             over(&mut out, fg, cover(handle.min(saucer), px));
             if face == Face::AwakeScreen {
-                let wisps = wisp(x, y, -1.5, -7.6, -3.0, 0.6, 0.75)
-                    .min(wisp(x, y, 1.7, -7.0, -3.0, 0.6, 0.75));
+                // Short, so the steam stays inside the keyline above a
+                // centred cup.
+                let wisps = wisp(x, y, -1.5, -4.9, -2.6, 0.45, 0.65)
+                    .min(wisp(x, y, 1.7, -4.5, -2.6, 0.45, 0.65));
                 over(&mut out, fg, cover(wisps, px));
             }
         }
