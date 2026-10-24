@@ -7,8 +7,9 @@
     <owners>kidchenko</owners>
     <title>Cafe</title>
     <authors>kidchenko</authors>
+    <copyright>Copyright (c) 2026 kidchenko</copyright>
     <projectUrl>https://github.com/kidchenko/cafe</projectUrl>
-    <iconUrl>https://raw.githubusercontent.com/kidchenko/cafe/main/assets/icon-256.png</iconUrl>
+    <iconUrl>https://cdn.jsdelivr.net/gh/kidchenko/cafe@126003c4792fa1f8ed75e9481c8a8b31e72780f5/assets/icon-256.png</iconUrl>
     <licenseUrl>https://github.com/kidchenko/cafe/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <projectSourceUrl>https://github.com/kidchenko/cafe</projectSourceUrl>
