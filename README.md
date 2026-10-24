@@ -58,7 +58,9 @@ The top line says what Cafe is doing right now. Under it:
 | **Run at login** | Just for your user, no admin needed. On macOS it shows up in System Settings > General > Login Items, and you can turn it off there too. Move Cafe.app to Applications first. |
 | **Edit settings file…** | Opens the config file in a text editor (⌘, on macOS). [More below.](#configuration) |
 
-Under that is the version you're running. **Quit Cafe** is ⌘Q on macOS.
+Under that is the version you're running. **Check for updates…** opens Cafe's
+web page, which tells you if a newer version is out (Cafe itself never goes
+online). **Quit Cafe** is ⌘Q on macOS.
 
 Cafe remembers what it was doing. If you restart in the middle of a timer, the
 timer carries on. If it ran out while Cafe was closed, Cafe starts up off.

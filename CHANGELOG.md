@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Added: Check for updates… in the menu opens Cafe's web page, which tells
+  you whether a newer version is out. Cafe itself still never goes online.
+
 ## [0.0.2] - 2026-10-22
 
 - Fixed: on macOS 26, the menu bar menu closed the first time you hovered over

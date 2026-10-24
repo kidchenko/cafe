@@ -44,6 +44,7 @@ const ID_NOTIFY: &str = "notify";
 const ID_FACTS: &str = "facts";
 const ID_FACT: &str = "fact";
 const ID_AUTOSTART: &str = "autostart";
+const ID_UPDATES: &str = "updates";
 const ID_QUIT: &str = "quit";
 /// Shared by every read-only row; nothing dispatches on it.
 const ID_INERT: &str = "inert";
@@ -206,6 +207,7 @@ impl App {
                 self.rebuild_menu();
             }
             ID_EDIT => open_config(),
+            ID_UPDATES => open_update_page(),
             ID_CHOOSE => {
                 if let Some(app) = picker::choose_app() {
                     self.watch(&app);
@@ -586,6 +588,12 @@ impl App {
         if self.cfg.facts {
             let _ = menu.append(&icon_item(ID_FACT, self.fact(), "lightbulb", None));
         }
+        let _ = menu.append(&icon_item(
+            ID_UPDATES,
+            "Check for updates\u{2026}",
+            "refresh-cw",
+            None,
+        ));
         let _ = menu.append(&icon_item(ID_QUIT, "Quit Cafe", "power", shortcut('q')));
 
         self.tray.set_menu(Some(Box::new(menu)));
@@ -799,6 +807,24 @@ fn open_config() {
         .spawn();
     if let Err(e) = spawned {
         lwarn!("could not open {}: {e}", path.display());
+    }
+}
+
+/// The project page, told which version is installed. Cafe never goes online
+/// itself: the page asks GitHub for the latest release and compares.
+fn open_update_page() {
+    let url = concat!(
+        "https://josebarbosa.dev/cafe/?v=",
+        env!("CARGO_PKG_VERSION")
+    );
+    // explorer.exe hands a URL to the default browser without a console
+    // window, which `cmd /c start` would flash.
+    #[cfg(windows)]
+    let spawned = std::process::Command::new("explorer.exe").arg(url).spawn();
+    #[cfg(target_os = "macos")]
+    let spawned = std::process::Command::new("/usr/bin/open").arg(url).spawn();
+    if let Err(e) = spawned {
+        lwarn!("could not open {url}: {e}");
     }
 }
 
