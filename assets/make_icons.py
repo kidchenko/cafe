@@ -67,7 +67,7 @@ def main(dump: pathlib.Path) -> None:
     docs = HERE.parent / "docs" / "img"
     docs.mkdir(parents=True, exist_ok=True)
     (docs / "icon-256.png").write_bytes(png(load("app", 256), 256))
-    for face in ("off", "awake", "screen"):
+    for face in ("off", "awake", "screen", "timer", "timer-screen"):
         (docs / f"cup-{face}.png").write_bytes(png(load(f"cup-{face}", 128), 128))
 
     for path in sorted(dump.glob("tray-*.rgba")):

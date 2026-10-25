@@ -54,7 +54,7 @@ winresource = "0.1"
 [target.'cfg(target_os = "macos")'.dependencies]
 libc                     = "0.2"
 objc2                    = "0.6"
-objc2-app-kit            = { version = "0.3", default-features = false, features = ["std", "NSApplication", "NSOpenPanel", "NSPanel", "NSResponder", "NSRunningApplication", "NSSavePanel", "NSWindow", "NSWorkspace"] }
+objc2-app-kit            = { version = "0.3", default-features = false, features = ["std", "NSApplication", "NSImage", "NSMenu", "NSMenuItem", "NSOpenPanel", "NSPanel", "NSResponder", "NSRunningApplication", "NSSavePanel", "NSWindow", "NSWorkspace"] }
 objc2-foundation         = { version = "0.3", default-features = false, features = ["std", "NSArray", "NSBundle", "NSError", "NSFileManager", "NSRunLoop", "NSString", "NSURL"] }
 objc2-service-management = { version = "0.3", default-features = false, features = ["std", "SMAppService", "objc2", "objc2-foundation"] }
 

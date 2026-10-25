@@ -102,6 +102,7 @@ pub struct App {
 
     // What is on screen, so a tick only repaints what changed.
     face: Face,
+    timer: bool,
     header: String,
     /// The status line at the top of the menu, kept so its text can change
     /// while the menu is open.
@@ -123,7 +124,7 @@ impl App {
         forward_tray_events(&proxy);
 
         let dark_taskbar = theme::taskbar_is_dark();
-        let icon = tray_image(Face::Off, dark_taskbar)?;
+        let icon = tray_image(Face::Off, false, dark_taskbar)?;
         // On macOS the icon is a template: AppKit tints it for the menu bar.
         #[cfg(target_os = "macos")]
         let builder = TrayIconBuilder::new().with_icon_templated(icon);
@@ -150,6 +151,7 @@ impl App {
             low_announced: false,
             fact_offset: 0,
             face: Face::Off,
+            timer: false,
             header: String::new(),
             header_item: None,
             menu_stale: false,
@@ -473,11 +475,13 @@ impl App {
 
     fn paint_icon(&mut self, force: bool) {
         let face = self.face();
-        if face == self.face && !force {
+        let timer = matches!(self.cfg.mode, Mode::Until { .. });
+        if face == self.face && timer == self.timer && !force {
             return;
         }
         self.face = face;
-        match tray_image(face, self.dark_taskbar) {
+        self.timer = timer;
+        match tray_image(face, timer, self.dark_taskbar) {
             Ok(img) => {
                 #[cfg(target_os = "macos")]
                 let _ = self.tray.set_icon_templated(Some(img));
@@ -564,18 +568,16 @@ impl App {
         self.header_item = Some(header);
         let _ = menu.append(&PredefinedMenuItem::separator());
 
-        // Actions first, then the one setting people flip often, then the
-        // rest out of the way under Settings.
-        let (toggle, glyph) = if self.cfg.mode == Mode::Off {
-            ("Keep awake", "coffee")
+        // What people come for at the top, with glyphs only on the switch,
+        // the fact and Quit; plain submenus, and the rest under Settings.
+        let toggle = if self.cfg.mode == Mode::Off {
+            "Keep awake"
         } else {
-            ("Turn off", "circle-stop")
+            "Turn off"
         };
-        let _ = menu.append(&icon_item(ID_TOGGLE, toggle, glyph, None));
+        let _ = menu.append(&icon_item(ID_TOGGLE, toggle, "coffee", None));
         let _ = menu.append(&self.timer_menu(sod));
         let _ = menu.append(&self.apps_menu());
-
-        let _ = menu.append(&PredefinedMenuItem::separator());
         let _ = menu.append(&CheckMenuItem::with_id(
             ID_SCREEN,
             "Keep screen on",
@@ -583,26 +585,25 @@ impl App {
             self.cfg.keep_screen_on,
             None,
         ));
-        let _ = menu.append(&self.settings_menu());
-        let _ = menu.append(&PredefinedMenuItem::separator());
+
         if self.cfg.facts {
+            let _ = menu.append(&PredefinedMenuItem::separator());
             let _ = menu.append(&icon_item(ID_FACT, self.fact(), "lightbulb", None));
         }
-        let _ = menu.append(&icon_item(
-            ID_UPDATES,
-            "Check for updates\u{2026}",
-            "refresh-cw",
-            None,
-        ));
+
+        let _ = menu.append(&PredefinedMenuItem::separator());
+        let _ = menu.append(&self.settings_menu());
         let _ = menu.append(&icon_item(ID_QUIT, "Quit Cafe", "power", shortcut('q')));
 
+        #[cfg(target_os = "macos")]
+        glyphs_beside_checkmarks(&menu);
         self.tray.set_menu(Some(Box::new(menu)));
     }
 
     /// Durations, then the next few whole hours. The status line at the top
     /// already says when a running timer ends.
     fn timer_menu(&self, sod: u64) -> Submenu {
-        let sub = icon_submenu("Timer", "timer", true);
+        let sub = Submenu::new("Timer", true);
         for &mins in &self.cfg.durations {
             let _ = sub.append(&MenuItem::with_id(
                 format!("{ID_FOR}{mins}"),
@@ -625,7 +626,7 @@ impl App {
 
     /// Things set once and left alone.
     fn settings_menu(&self) -> Submenu {
-        let sub = icon_submenu("Settings", "settings", true);
+        let sub = Submenu::new("Settings", true);
         let _ = sub.append(&self.battery_menu());
         let _ = sub.append(&CheckMenuItem::with_id(
             ID_NOTIFY,
@@ -662,6 +663,12 @@ impl App {
             false,
             None,
         ));
+        let _ = sub.append(&MenuItem::with_id(
+            ID_UPDATES,
+            "Check for updates\u{2026}",
+            true,
+            None,
+        ));
         sub
     }
 
@@ -669,7 +676,7 @@ impl App {
     /// that could be added, then the file picker for anything else, like an
     /// app that isn't open or a build tool.
     fn apps_menu(&self) -> Submenu {
-        let sub = icon_submenu("While an app is open", "app-window", true);
+        let sub = Submenu::new("While an app is open", true);
         if self.cfg.apps.is_empty() {
             let _ = sub.append(&MenuItem::with_id(ID_INERT, "No apps yet", false, None));
         }
@@ -716,7 +723,7 @@ impl App {
             Some(b) => format!("Stop on battery below ({}% now)", b.percent),
             None => "Stop on battery below".to_string(),
         };
-        let sub = icon_submenu(title, "battery-low", has_battery);
+        let sub = Submenu::new(title, has_battery);
         for floor in FLOORS {
             let label = if floor == 0 {
                 "Never".to_string()
@@ -732,6 +739,36 @@ impl App {
             ));
         }
         sub
+    }
+}
+
+/// AppKit draws a row's image after the checkmark column, so rows with a
+/// glyph start their text further right than the rest. Moved into that column
+/// as the row's state image, glyphs and checkmarks share it and every label
+/// lines up. Windows menus already draw icons there.
+#[cfg(target_os = "macos")]
+fn glyphs_beside_checkmarks(menu: &Menu) {
+    use objc2_app_kit::NSMenu;
+    use tray_icon::menu::ContextMenu;
+    fn walk(menu: &NSMenu) {
+        for item in menu.itemArray() {
+            if let Some(image) = item.image() {
+                // Unsafe only because AppKit can't check the image's type;
+                // it's the one the row was already drawing.
+                unsafe {
+                    item.setOnStateImage(Some(&image));
+                    item.setOffStateImage(Some(&image));
+                }
+                item.setImage(None);
+            }
+            if let Some(sub) = item.submenu() {
+                walk(&sub);
+            }
+        }
+    }
+    // Owned by `menu`, which outlives this call.
+    if let Some(ns) = unsafe { menu.ns_menu().cast::<NSMenu>().as_ref() } {
+        walk(ns);
     }
 }
 
@@ -760,16 +797,6 @@ fn icon_item(id: &str, text: &str, glyph: &str, accel: Option<Accelerator>) -> I
     #[cfg(windows)]
     item.set_icon(art::glyph(glyph));
     item
-}
-
-/// A submenu with a Lucide glyph beside it.
-fn icon_submenu(text: impl AsRef<str>, glyph: &str, enabled: bool) -> Submenu {
-    let sub = Submenu::new(text, enabled);
-    #[cfg(target_os = "macos")]
-    sub.set_icon_templated(art::glyph(glyph));
-    #[cfg(windows)]
-    sub.set_icon(art::glyph(glyph));
-    sub
 }
 
 /// ⌘ and a key, on macOS. Windows tray menus can't take keyboard shortcuts.
@@ -828,9 +855,13 @@ fn open_update_page() {
     }
 }
 
-fn tray_image(face: Face, dark: bool) -> Result<Icon, String> {
-    Icon::from_rgba(icon::render(face, dark, icon::EDGE), icon::EDGE, icon::EDGE)
-        .map_err(|e| format!("could not build the tray image: {e}"))
+fn tray_image(face: Face, timer: bool, dark: bool) -> Result<Icon, String> {
+    Icon::from_rgba(
+        icon::render(face, timer, dark, icon::EDGE),
+        icon::EDGE,
+        icon::EDGE,
+    )
+    .map_err(|e| format!("could not build the tray image: {e}"))
 }
 
 fn forward_menu_events(proxy: &EventLoopProxy<UserEvent>) {

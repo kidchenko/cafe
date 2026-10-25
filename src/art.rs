@@ -14,8 +14,7 @@ macro_rules! table {
 }
 
 const GLYPHS: &[(&str, &[u8])] = table!(
-    "app-window" "battery-low" "circle-stop" "coffee" "file-cog" "folder-open"
-    "lightbulb" "power" "refresh-cw" "settings" "timer"
+    "coffee" "file-cog" "folder-open" "lightbulb" "power"
 );
 
 /// A glyph for a menu row. macOS draws it as a template image, tinted to suit

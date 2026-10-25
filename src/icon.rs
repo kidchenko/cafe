@@ -6,6 +6,9 @@
 //! | `Awake`       | filled  | no    |
 //! | `AwakeScreen` | filled  | yes   |
 //!
+//! While a timer runs, any awake face also gets a small clock at the lower
+//! right, cut out of the cup and saucer so it reads at 16 pt.
+//!
 //! Drawn from signed distance functions with 4x4 supersampling rather than
 //! shipped as bitmaps: it is crisp at any edge, needs no image decoder, and a
 //! new face is a few lines rather than a trip through an editor.
@@ -50,8 +53,9 @@ enum Ink {
     Light,
 }
 
-/// RGBA8, `edge` x `edge`, straight alpha.
-pub fn render(face: Face, dark_taskbar: bool, edge: u32) -> Vec<u8> {
+/// RGBA8, `edge` x `edge`, straight alpha. `timer` adds the clock to an awake
+/// face.
+pub fn render(face: Face, timer: bool, dark_taskbar: bool, edge: u32) -> Vec<u8> {
     let ink = if cfg!(target_os = "macos") {
         Ink::Template
     } else if dark_taskbar {
@@ -59,10 +63,10 @@ pub fn render(face: Face, dark_taskbar: bool, edge: u32) -> Vec<u8> {
     } else {
         Ink::Light
     };
-    paint(face, ink, edge)
+    paint(face, timer, ink, edge)
 }
 
-fn paint(face: Face, ink: Ink, edge: u32) -> Vec<u8> {
+fn paint(face: Face, timer: bool, ink: Ink, edge: u32) -> Vec<u8> {
     let (fg, fill): (Rgb, Rgb) = match ink {
         Ink::Template => ([0.0; 3], [0.0; 3]),
         Ink::Dark => ([0.95, 0.95, 0.95], [0.89, 0.58, 0.24]),
@@ -70,12 +74,12 @@ fn paint(face: Face, ink: Ink, edge: u32) -> Vec<u8> {
     };
     let half = TRAY_GRID / 2.0;
     raster(edge, |x, y, px| {
-        tray(face, x * half, y * half, px * half, fg, fill)
+        tray(face, timer, x * half, y * half, px * half, fg, fill)
     })
 }
 
 /// One sample of the tray glyph, in design units.
-fn tray(face: Face, x: f32, y: f32, px: f32, fg: Rgb, fill: Rgb) -> Rgba {
+fn tray(face: Face, timer: bool, x: f32, y: f32, px: f32, fg: Rgb, fill: Rgb) -> Rgba {
     // The handle pushes the drawing's bounds right of the cup; this centres
     // the whole thing rather than the cup alone. Vertically it centres the cup
     // and saucer, not the steam: the cup must not jump between faces, and
@@ -106,7 +110,26 @@ fn tray(face: Face, x: f32, y: f32, px: f32, fg: Rgb, fill: Rgb) -> Rgba {
             }
         }
     }
+    if timer && face != Face::Off {
+        clock(&mut out, x, y, px, fg);
+    }
     out
+}
+
+/// The timer badge: a solid dial with its hands at three o'clock cut out,
+/// sitting in a clear gap over the handle and the end of the saucer.
+fn clock(out: &mut Rgba, x: f32, y: f32, px: f32, fg: Rgb) {
+    const C: (f32, f32) = (5.7, 4.9);
+    const R: f32 = 3.4;
+    const GAP: f32 = 0.9;
+    let dial = len(x - C.0, y - C.1) - R;
+    let erase = cover(dial - GAP, px);
+    for v in out.iter_mut() {
+        *v *= 1.0 - erase;
+    }
+    let hands =
+        capsule(x, y, C, (C.0, C.1 - 2.0), 0.55).min(capsule(x, y, C, (C.0 + 1.5, C.1), 0.55));
+    over(out, fg, cover(dial.max(-hands), px));
 }
 
 /// A cup's body: flat across the top at `top`, rounded at the bottom by
@@ -382,28 +405,32 @@ pub const APP_SIZES: [u32; 10] = [16, 20, 24, 32, 40, 48, 64, 128, 256, 1024];
 /// dark-taskbar colours whatever OS the dump runs on.
 pub fn dump(dir: &str) -> std::io::Result<()> {
     std::fs::create_dir_all(dir)?;
-    for (name, face) in [
-        ("off", Face::Off),
-        ("awake", Face::Awake),
-        ("screen", Face::AwakeScreen),
+    for (name, face, timer) in [
+        ("off", Face::Off, false),
+        ("awake", Face::Awake, false),
+        ("screen", Face::AwakeScreen, false),
+        ("timer", Face::Awake, true),
+        ("timer-screen", Face::AwakeScreen, true),
     ] {
         for (theme, dark) in [("dark", true), ("light", false)] {
             for edge in [EDGE, 128] {
                 std::fs::write(
                     format!("{dir}/tray-{name}-{theme}-{edge}.rgba"),
-                    render(face, dark, edge),
+                    render(face, timer, dark, edge),
                 )?;
             }
         }
     }
-    for (name, face) in [
-        ("off", Face::Off),
-        ("awake", Face::Awake),
-        ("screen", Face::AwakeScreen),
+    for (name, face, timer) in [
+        ("off", Face::Off, false),
+        ("awake", Face::Awake, false),
+        ("screen", Face::AwakeScreen, false),
+        ("timer", Face::Awake, true),
+        ("timer-screen", Face::AwakeScreen, true),
     ] {
         std::fs::write(
             format!("{dir}/cup-{name}-128.rgba"),
-            paint(face, Ink::Dark, 128),
+            paint(face, timer, Ink::Dark, 128),
         )?;
     }
     for edge in APP_SIZES {
@@ -421,7 +448,7 @@ mod tests {
     use super::*;
 
     fn alpha_sum(face: Face) -> u32 {
-        render(face, true, EDGE)
+        render(face, false, true, EDGE)
             .chunks(4)
             .map(|p| p[3] as u32)
             .sum()
@@ -444,9 +471,22 @@ mod tests {
 
     #[test]
     fn corners_are_transparent() {
-        let px = render(Face::AwakeScreen, true, EDGE);
+        let px = render(Face::AwakeScreen, true, true, EDGE);
         assert_eq!(px[3], 0);
         assert_eq!(px[px.len() - 1], 0);
+    }
+
+    #[test]
+    fn timer_marks_only_awake_faces() {
+        let off = render(Face::Off, false, true, EDGE);
+        assert_eq!(render(Face::Off, true, true, EDGE), off);
+        for face in [Face::Awake, Face::AwakeScreen] {
+            assert_ne!(
+                render(face, true, true, EDGE),
+                render(face, false, true, EDGE),
+                "{face:?}"
+            );
+        }
     }
 
     #[test]

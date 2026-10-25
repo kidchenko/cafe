@@ -233,12 +233,11 @@
     <button class="row" data-toggle="awake" role="menuitem"><span></span><span id="toggle">Keep awake</span><span></span></button>
     <button class="row" data-mode="for" role="menuitem"><span></span><span>Timer</span><span class="arrow">›</span></button>
     <button class="row" data-mode="app" role="menuitem"><span></span><span>While an app is open</span><span class="arrow">›</span></button>
-    <div class="sep"></div>
     <button class="row on" data-toggle="screen" role="menuitemcheckbox"><span class="chk">✓</span><span>Keep screen on</span><span></span></button>
-    <div class="row"><span></span><span>Settings</span><span class="arrow">›</span></div>
     <div class="sep"></div>
     <button class="row" data-fact role="menuitem"><span></span><span id="fact">Brazil is the world's largest coffee producer and exporter.</span><span></span></button>
-    <div class="row"><span></span><span>Check for updates…</span><span></span></div>
+    <div class="sep"></div>
+    <div class="row"><span></span><span>Settings</span><span class="arrow">›</span></div>
     <div class="row"><span></span><span>Quit Cafe</span><span></span></div>
   </div>
   <div class="taskbar" aria-hidden="true">
@@ -269,6 +268,7 @@
       <div class="face"><div class="chip"><img src="img/cup-off.png" alt=""></div><div><b>Off</b><span>Your computer sleeps as usual.</span></div></div>
       <div class="face"><div class="chip"><img src="img/cup-awake.png" alt=""></div><div><b>Awake</b><span>No sleep, but the screen can still turn off.</span></div></div>
       <div class="face"><div class="chip"><img src="img/cup-screen.png" alt=""></div><div><b>Awake, screen on</b><span>Nothing goes to sleep.</span></div></div>
+      <div class="face"><div class="chip"><img src="img/cup-timer.png" alt=""></div><div><b>Timer running</b><span>A small clock on the cup. The menu says when it ends.</span></div></div>
     </div>
   </section>
 
@@ -413,7 +413,9 @@
       status.textContent = labels[state.mode](s);
       document.getElementById("toggle").textContent = state.mode === "off" ? "Keep awake" : "Turn off";
       menu.querySelector('[data-toggle="screen"]').classList.toggle("on", state.screen);
-      cup.src = state.mode === "off" ? "img/cup-off.png" : state.screen ? "img/cup-screen.png" : "img/cup-awake.png";
+      var face = state.screen ? "screen" : "awake";
+      if (state.mode === "for") face = state.screen ? "timer-screen" : "timer";
+      cup.src = "img/cup-" + (state.mode === "off" ? "off" : face) + ".png";
     }
     menu.addEventListener("click", function (e) {
       var b = e.target.closest("button");

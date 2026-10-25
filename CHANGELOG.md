@@ -2,7 +2,12 @@
 
 ## Unreleased
 
-- Added: Check for updates… in the menu opens Cafe's web page, which tells
+- Changed: a tidier menu. Fewer icons and separators, Settings sits with
+  Quit, and Check for updates… is in Settings under the version.
+  On macOS, icons and checkmarks share one column, so every label lines up.
+- Added: while a timer runs, the cup in the menu bar or tray shows a small
+  clock.
+- Added: Check for updates… in Settings opens Cafe's web page, which tells
   you whether a newer version is out. Cafe itself still never goes online.
 
 ## [0.0.2] - 2026-10-22

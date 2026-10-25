@@ -27,6 +27,7 @@ uses about 2 MB of memory while it sits there.
 | **Outline cup** | Off. Your computer sleeps as usual. |
 | **Filled cup** | Awake. The computer won't go to sleep, but the screen can still turn off. |
 | **Cup with steam** | Awake with the screen on. Nothing goes to sleep. |
+| **Small clock on the cup** | A timer is running. The menu says when it ends. |
 
 On Windows, **left-click** toggles between off and awake, and **right-click**
 opens the menu. On macOS, clicking opens the menu, same as any other menu bar
@@ -54,13 +55,13 @@ The top line says what Cafe is doing right now. Under it:
 |---|---|
 | **Stop on battery below** | Never, 10%, 20%, 30% or 50%. The default is 20%. [More below.](#battery) |
 | **Notifications** | Lets you know when a timer ends or a low battery stops Cafe. |
-| **Coffee facts** | A coffee fact of the day at the bottom of the menu. [More below.](#coffee-facts) |
+| **Coffee facts** | A coffee fact of the day in the menu. [More below.](#coffee-facts) |
 | **Run at login** | Just for your user, no admin needed. On macOS it shows up in System Settings > General > Login Items, and you can turn it off there too. Move Cafe.app to Applications first. |
 | **Edit settings file…** | Opens the config file in a text editor (⌘, on macOS). [More below.](#configuration) |
 
-Under that is the version you're running. **Check for updates…** opens Cafe's
-web page, which tells you if a newer version is out (Cafe itself never goes
-online). **Quit Cafe** is ⌘Q on macOS.
+Last in Settings are the version you're running and **Check for updates…**,
+which opens Cafe's web page to tell you if a newer version is out (Cafe itself
+never goes online). **Quit Cafe** is ⌘Q on macOS.
 
 Cafe remembers what it was doing. If you restart in the middle of a timer, the
 timer carries on. If it ran out while Cafe was closed, Cafe starts up off.
@@ -96,7 +97,7 @@ overnight.
 
 ### Coffee facts
 
-There's a new fact at the bottom of the menu every day, like where coffee
+There's a new fact in the menu every day, like where coffee
 comes from, what a cortado is, or why it's called mocha. Click it to see the
 next one. The first time you turn Cafe on each day, you also get one as a
 notification. That's the only one you'll get that day.

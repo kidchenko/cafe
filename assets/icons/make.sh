@@ -31,8 +31,7 @@ raster() { # svg png
 
 # Cafe name = Lucide name.
 GLYPHS=(
-  coffee circle-stop timer app-window folder-open settings battery-low
-  file-cog lightbulb power refresh-cw
+  coffee folder-open file-cog lightbulb power
 )
 rm -rf glyph
 mkdir -p glyph
