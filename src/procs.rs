@@ -43,6 +43,12 @@ pub fn first_running<'a>(watch: &'a [String], running: &HashSet<String>) -> Opti
 /// the app or program at a path.
 pub use imp::{describe, running};
 
+/// Call `f` as soon as an app launches or quits, so a watched app is noticed
+/// at once rather than on the next tick. macOS only: Windows has no cheap
+/// equivalent, and there the tick is all there is.
+#[cfg(target_os = "macos")]
+pub use imp::on_launch_or_quit;
+
 /// Apps with a window, sorted by display name and de-duplicated, minus the
 /// shell's own furniture.
 pub fn windowed() -> Vec<App> {
@@ -248,6 +254,36 @@ mod imp {
     }
 
     const PATH_MAX: usize = 4096;
+
+    pub fn on_launch_or_quit(f: impl Fn() + 'static) {
+        use block2::RcBlock;
+        use objc2_app_kit::{
+            NSWorkspaceDidLaunchApplicationNotification,
+            NSWorkspaceDidTerminateApplicationNotification,
+        };
+        use objc2_foundation::NSNotification;
+        use std::ptr::NonNull;
+        use std::rc::Rc;
+
+        let center = NSWorkspace::sharedWorkspace().notificationCenter();
+        let f = Rc::new(f);
+        let names = unsafe {
+            [
+                NSWorkspaceDidLaunchApplicationNotification,
+                NSWorkspaceDidTerminateApplicationNotification,
+            ]
+        };
+        for name in names {
+            let f = f.clone();
+            let block = RcBlock::new(move |_: NonNull<NSNotification>| f());
+            // Posted on the main thread, so no queue. The centre keeps the
+            // block for as long as the process lives, which is as long as
+            // Cafe wants it.
+            let _ = unsafe {
+                center.addObserverForName_object_queue_usingBlock(Some(name), None, None, &block)
+            };
+        }
+    }
 
     /// Executable paths of every process this user may inspect. Other users'
     /// processes (root daemons) fail `proc_pidpath` and are simply skipped.

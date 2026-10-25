@@ -53,9 +53,11 @@ const ID_INERT: &str = "inert";
 /// countdown honest to the minute and to catch the battery crossing its floor,
 /// rare enough to be invisible in Task Manager.
 const TICK: Duration = Duration::from_secs(30);
-/// Faster while apps are watched, so opening one is noticed promptly. A
-/// process snapshot is a few hundred microseconds; this is still nothing.
-const TICK_WATCHING: Duration = Duration::from_secs(10);
+/// Faster while apps are watched, so quitting one lets the machine sleep
+/// within seconds. On macOS app launches and quits are heard at once anyway;
+/// this catches the rest, like a build tool. A process snapshot is a few
+/// hundred microseconds, so this is still nothing.
+const TICK_WATCHING: Duration = Duration::from_secs(5);
 /// While a rebuild waits for the menu to close.
 const MENU_RETRY: Duration = Duration::from_secs(1);
 
@@ -73,6 +75,8 @@ pub enum UserEvent {
     Menu(String),
     /// Left click on the tray icon (Windows) or a second launch of the app.
     Toggle,
+    /// An app launched or quit (macOS): look now rather than on the tick.
+    AppsChanged,
 }
 
 #[derive(PartialEq, Eq)]
@@ -122,6 +126,13 @@ impl App {
         forward_menu_events(&proxy);
         #[cfg(windows)]
         forward_tray_events(&proxy);
+        #[cfg(target_os = "macos")]
+        {
+            let proxy = proxy.clone();
+            procs::on_launch_or_quit(move || {
+                let _ = proxy.send_event(UserEvent::AppsChanged);
+            });
+        }
 
         let dark_taskbar = theme::taskbar_is_dark();
         let icon = tray_image(Face::Off, false, dark_taskbar)?;
@@ -181,6 +192,7 @@ impl App {
                 self.set_mode(next);
             }
             UserEvent::Menu(id) => return self.menu(&id),
+            UserEvent::AppsChanged => self.tick(),
         }
         Flow::Continue
     }

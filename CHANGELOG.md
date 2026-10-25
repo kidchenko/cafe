@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Fixed: keeping awake while an app is open was slow to notice the app
+  opening or quitting, up to 10 seconds. On macOS it now reacts at once;
+  everywhere else, and for programs that aren't apps, Cafe checks every
+  5 seconds.
+
 ## [0.0.3] - 2026-10-25
 
 - Changed: a tidier menu. Fewer icons and separators, Settings sits with

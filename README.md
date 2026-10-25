@@ -82,8 +82,9 @@ build.
 
 Behind the scenes Cafe matches on the program's file name and ignores case and
 `.exe`, so `OBS64.exe` and `obs64` count as the same app. While the list has anything on
-it, Cafe checks every 10 seconds, and the top of the menu tells you which app
-is keeping it awake.
+it, Cafe checks every 5 seconds (on macOS, apps are noticed the moment they
+open or quit), and the top of the menu tells you which app is keeping it
+awake.
 
 ### Battery
 
