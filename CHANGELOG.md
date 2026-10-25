@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [0.0.3] - 2026-10-25
 
 - Changed: a tidier menu. Fewer icons and separators, Settings sits with
   Quit, and Check for updates… is in Settings under the version.

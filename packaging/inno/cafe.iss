@@ -4,7 +4,7 @@
 
 #define AppName      "Cafe"
 #ifndef AppVersion
-  #define AppVersion "0.0.2"
+  #define AppVersion "0.0.3"
 #endif
 #define AppPublisher "kidchenko"
 #define AppURL       "https://github.com/kidchenko/cafe"
