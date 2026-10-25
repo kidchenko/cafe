@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [0.0.4] - 2026-10-25
 
 - Fixed: keeping awake while an app is open was slow to notice the app
   opening or quitting, up to 10 seconds. On macOS it now reacts at once;
